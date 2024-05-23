@@ -5,7 +5,6 @@ from writer import ImageWriter
 from composition.image_processing.image_blending import ImageBlending
 from composition.image_processing.smoothening import BorderSmoothing
 from composition.image_harmonization.harmonization import ImageHarmonization
-from composition.image_lighting_fix.intrinsic_composting import IntrinsicCompositing
 import numpy as np
 
 
@@ -62,7 +61,6 @@ class ImageComposition:
             'blending': ImageBlending,
             'border-smoothing': BorderSmoothing,
             'harmonization': ImageHarmonization,
-            'lighting': IntrinsicCompositing
         }
 
     @handle_exceptions
@@ -81,7 +79,7 @@ class ImageComposition:
         for model in self.model_list:
             if model in self.image_composition_models:
                 model_obj = self.image_composition_models[model](self.config)
-                if model in ['border-smoothing', 'lighting']:
+                if model in ['border-smoothing']:
                     frame = model_obj.infer(frame, mask, bg_image)
                 else:
                     frame = model_obj.infer(frame, mask)
