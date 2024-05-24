@@ -1,8 +1,10 @@
+"""Writer Classes"""
 import cv2
+
 
 class ImageWriter:
     """Class for writing images."""
-    
+
     @staticmethod
     def write_image(image, image_path: str) -> bool:
         """
@@ -20,7 +22,7 @@ class ImageWriter:
 
 class VideoWriter:
     """Class for writing video frames."""
-    
+
     def __init__(self, output_path: str, video_prop: dict) -> None:
         """
         Initialize VideoWriter.

@@ -1,3 +1,4 @@
+"""Condig Manager"""
 from os.path import exists
 from types import SimpleNamespace
 from dotenv import dotenv_values
@@ -18,6 +19,8 @@ class ConfigManager:
         'composite': ['composite_frame_path', 'composite_mask_path', 'background_image_path']
     }
 
+    MODEL_TYPE = 'PCTNet'
+
     def __init__(self) -> None:
         pass
 
@@ -33,7 +36,8 @@ class ConfigManager:
             dict: A dictionary containing the environment variables.
         """
         if not exists(env_path):
-            raise ValueError("Config path is incorrect, please check the path for the env file.")
+            raise ValueError(
+                "Config path is incorrect, please check the path for the env file.")
         return {key.lower(): val for key, val in dotenv_values(env_path).items()}
 
     @staticmethod
@@ -62,7 +66,8 @@ class ConfigManager:
 
         for key in self.REQUIRED_KEYS[input_type]:
             if key not in config:
-                raise ValueError(f"Missing required key: {key} for input type: {input_type}.")
+                raise ValueError(f"Missing required key: {
+                                 key} for input type: {input_type}.")
 
     def get_config(self, env_path: str) -> SimpleNamespace:
         """
@@ -81,6 +86,7 @@ class ConfigManager:
             env_var.update(self.__read_env_file(env_path))
 
         # Parse boolean values
+        env_var['model_type'] = self.MODEL_TYPE
         env_var['model_list'] = env_var['model_list'].split(',')
         env_var['debug_mode'] = self.__parse_bool(env_var['debug_mode'])
 

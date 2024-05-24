@@ -1,8 +1,9 @@
-import cv2
 import queue
 from threading import Thread, Event
 from contextlib import contextmanager
 from typing import Dict, Tuple, Union
+
+import cv2
 import numpy as np
 
 
@@ -16,11 +17,12 @@ class ImageReader:
         Args:
             image_path (str): Path to the image file.
         """
+        self.frame = None
         self.image_path = image_path
 
     def __read_image(self) -> np.ndarray:
         """Read an image from the specified path."""
-        return cv2.imread(self.image_path, cv2.IMREAD_UNCHANGED) 
+        return cv2.imread(self.image_path, cv2.IMREAD_UNCHANGED)
 
     def get_image(self) -> np.ndarray:
         """Get the image."""

@@ -1,11 +1,15 @@
+"""Image Composition"""
 import os
 from shutil import rmtree
 from os.path import join, exists
+
+import numpy as np
+
 from writer import ImageWriter
 from composition.image_processing.image_blending import ImageBlending
 from composition.image_processing.smoothening import BorderSmoothing
 from composition.image_harmonization.harmonization import ImageHarmonization
-import numpy as np
+
 
 
 def handle_exceptions(func):
@@ -78,6 +82,7 @@ class ImageComposition:
         """
         for model in self.model_list:
             if model in self.image_composition_models:
+                print(model)
                 model_obj = self.image_composition_models[model](self.config)
                 if model in ['border-smoothing']:
                     frame = model_obj.infer(frame, mask, bg_image)
@@ -85,7 +90,8 @@ class ImageComposition:
                     frame = model_obj.infer(frame, mask)
 
                 if self.debug_mode:
-                    self.image_writer.write_image(frame, join(self.debug_folder, f'{model}.jpg'))
+                    self.image_writer.write_image(
+                        frame, join(self.debug_folder, f'{model}.jpg'))
 
         return frame, mask
 
@@ -107,7 +113,8 @@ class ImageComposition:
         frame, mask = image_blender.infer(fg_image, bg_image, bbox)
 
         if self.debug_mode:
-            self.image_writer.write_image(frame, join(self.debug_folder, 'composite_image.jpg'))
+            self.image_writer.write_image(frame, join(
+                self.debug_folder, 'composite_image.jpg'))
 
         frame, mask = self.process_composite(frame, mask, bg_image)
 

@@ -1,3 +1,4 @@
+import sys
 from os.path import exists
 from PIL import Image
 
@@ -46,7 +47,7 @@ class ImageHarmonization:
         print("Initializing Image Harmonization Model....")
 
     def load_model(self, model_path: str):
-        return torch.load(model_path)
+        return torch.load(model_path, map_location=self.device)
 
     def get_whitebox_harmonized_image(self, composite_image, composite_mask):
         

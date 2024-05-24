@@ -1,3 +1,4 @@
+"""Main Method"""
 import argparse
 from time import sleep
 
@@ -9,8 +10,15 @@ from composition.image_composition import ImageComposition
 
 
 def main(args):
+    """_summary_
+
+    :param args: _description_
+    :type args: _type_
+    :raises ValueError: _description_
+    """
     config_manager = ConfigManager()
     config = config_manager.get_config(args.env_path)
+    print(config)
     image_compositer =  ImageComposition(config)
     bbox = [579, 988, 1332, 3582]
 
@@ -23,7 +31,7 @@ def main(args):
         bg_image = bg_image_reader.get_image()
 
         final_image, final_mask = image_compositer.process_image(fg_image, bg_image, bbox)
-        
+
         image_writer.write_image(final_image, 'final_image.jpg')
         image_writer.write_image(final_mask, 'final_mask.jpg')
 
@@ -41,30 +49,28 @@ def main(args):
 
         image_writer.write_image(final_image, 'final_image.jpg')
         image_writer.write_image(final_mask, 'final_mask.jpg')
-    
+
     elif config.input_type == 'video':
         # INITIALIZING VIDEO READERS
         fg_video_reader = VideoReader(config.foreground_video_path)
         bg_video_reader = VideoReader(config.background_video_path)
         bg_video_prop = bg_video_reader.get_video_properties()
- 
+
         # INITIALIZING VIDEO WRITER
         video_writer = VideoWriter('test_video.mp4', bg_video_prop)
         sleep(0.05)
 
         while True:
-            
+
             ret_fg, fg_frame = fg_video_reader.read_frames()
-            ret_bg, bg_frame = bg_video_reader.read_frames()
+            _, bg_frame = bg_video_reader.read_frames()
 
             if not ret_fg:
                 break
 
             final_image, final_mask = image_compositer.process_image(fg_frame, bg_frame, bbox)
-            video_writer.write(final_image)
+            video_writer.write_frame(final_image)
 
-        video_writer.stop_video_writer()
-    
     else:
         raise ValueError("Input Type is not supported")
 

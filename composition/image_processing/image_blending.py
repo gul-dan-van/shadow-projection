@@ -1,6 +1,8 @@
+"""Image Blending Class"""
+from types import SimpleNamespace
+
 import cv2
 import numpy as np
-from types import SimpleNamespace
 
 
 class ImageBlending:
@@ -52,7 +54,7 @@ class ImageBlending:
         fg_image = fg_image[:, :, :3]
         fg_region, fg_mask = self.crop_and_resize_foreground(fg_image, fg_mask, bbox)
         x1, y1, x2, y2 = bbox
-        comp_mask = np.zeros((bg_img.shape[0], bg_img.shape[1]), dtype=np.uint8) 
+        comp_mask = np.zeros((bg_img.shape[0], bg_img.shape[1]), dtype=np.uint8)
         comp_mask[y1:y2, x1:x2] = fg_mask
         comp_img = bg_img.copy()
         comp_img[y1:y2, x1:x2] = np.where(fg_mask[:,:,np.newaxis] > self.ALPHA_THRESHOLD, fg_region, comp_img[y1:y2, x1:x2])
