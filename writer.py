@@ -1,12 +1,13 @@
 """Writer Classes"""
 import cv2
+from os.path import join
 
 
 class ImageWriter:
     """Class for writing images."""
 
     @staticmethod
-    def write_image(image, image_path: str) -> bool:
+    def write_image(image, folder_path: str, file_name: str) -> bool:
         """
         Write an image to the specified path.
 
@@ -17,7 +18,7 @@ class ImageWriter:
         Returns:
             bool: True if the image was successfully written, False otherwise.
         """
-        return cv2.imwrite(image_path, image)
+        return cv2.imwrite(join(folder_path, file_name), image)
 
 
 class VideoWriter:

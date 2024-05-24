@@ -1,8 +1,4 @@
 """Image Composition"""
-import os
-from shutil import rmtree
-from os.path import join, exists
-
 import numpy as np
 
 from writer import ImageWriter
@@ -55,10 +51,6 @@ class ImageComposition:
         self.debug_mode = config.debug_mode
 
         if self.debug_mode:
-            self.debug_folder = 'debug'
-            if exists(self.debug_folder):
-                rmtree(self.debug_folder)
-            os.makedirs(self.debug_folder)
             self.image_writer = ImageWriter()
 
         self.image_composition_models = {
@@ -90,8 +82,7 @@ class ImageComposition:
                     frame = model_obj.infer(frame, mask)
 
                 if self.debug_mode:
-                    self.image_writer.write_image(
-                        frame, join(self.debug_folder, f'{model}.jpg'))
+                    self.image_writer.write_image(frame, self.config.debug_path, f'{model}.jpg')
 
         return frame, mask
 
@@ -113,8 +104,7 @@ class ImageComposition:
         frame, mask = image_blender.infer(fg_image, bg_image, bbox)
 
         if self.debug_mode:
-            self.image_writer.write_image(frame, join(
-                self.debug_folder, 'composite_image.jpg'))
+            self.image_writer.write_image(frame, self.config.debug_path, 'composite_image.jpg')
 
         frame, mask = self.process_composite(frame, mask, bg_image)
 

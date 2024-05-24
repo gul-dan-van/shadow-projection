@@ -1,3 +1,4 @@
+from os.path import exists
 import queue
 from threading import Thread, Event
 from contextlib import contextmanager
@@ -22,12 +23,15 @@ class ImageReader:
 
     def __read_image(self) -> np.ndarray:
         """Read an image from the specified path."""
-        return cv2.imread(self.image_path, cv2.IMREAD_UNCHANGED)
+        if not exists(self.image_path):
+            raise ValueError("Image Path is incorrect. Please check the provided path...")
+        
+        else:
+            return cv2.imread(self.image_path, cv2.IMREAD_UNCHANGED)
 
     def get_image(self) -> np.ndarray:
         """Get the image."""
-        if not hasattr(self, 'frame'):
-            self.frame = self.__read_image()
+        self.frame = self.__read_image()
 
         return self.frame
 

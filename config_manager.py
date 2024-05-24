@@ -1,5 +1,6 @@
 """Condig Manager"""
 from os.path import exists
+from os import makedirs
 from types import SimpleNamespace
 from dotenv import dotenv_values
 
@@ -53,6 +54,18 @@ class ConfigManager:
         """
         return value.lower() == 'true'
 
+    def __create_directory(self, env_var: dict) -> dict:
+        """Method to create the directories listed in FOLDER list and add the path to env params"""
+        if env_var is None:
+            env_var = {}
+
+        for primary_dir in self.FOLDERS:
+            if not exists(primary_dir):
+                makedirs(primary_dir)
+                env_var[f'{primary_dir.lower()}_path'] = primary_dir
+
+        return env_var
+
     def __validate_config(self, config: dict) -> None:
         """
         Validates the provided configuration.
@@ -89,6 +102,7 @@ class ConfigManager:
         env_var['model_type'] = self.MODEL_TYPE
         env_var['model_list'] = env_var['model_list'].split(',')
         env_var['debug_mode'] = self.__parse_bool(env_var['debug_mode'])
+        env_var = self.__create_directory(env_var)
 
         # Validate configuration
         self.__validate_config(env_var)

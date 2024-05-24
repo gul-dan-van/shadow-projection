@@ -18,7 +18,6 @@ def main(args):
     """
     config_manager = ConfigManager()
     config = config_manager.get_config(args.env_path)
-    print(config)
     image_compositer =  ImageComposition(config)
     bbox = [579, 988, 1332, 3582]
 
@@ -32,8 +31,8 @@ def main(args):
 
         final_image, final_mask = image_compositer.process_image(fg_image, bg_image, bbox)
 
-        image_writer.write_image(final_image, 'final_image.jpg')
-        image_writer.write_image(final_mask, 'final_mask.jpg')
+        image_writer.write_image(final_image,config.output_path, 'final_image.jpg')
+        image_writer.write_image(final_mask, config.output_path, 'final_mask.jpg')
 
     elif config.input_type == 'composite':
         composite_frame_reader = ImageReader(config.composite_frame_path)
@@ -47,8 +46,8 @@ def main(args):
 
         final_image, final_mask = image_compositer.process_composite(composite_frame, composite_mask, bg_image)
 
-        image_writer.write_image(final_image, 'final_image.jpg')
-        image_writer.write_image(final_mask, 'final_mask.jpg')
+        image_writer.write_image(final_image, config.output_path, 'final_image.jpg')
+        image_writer.write_image(final_mask, config.output_path, 'final_mask.jpg')
 
     elif config.input_type == 'video':
         # INITIALIZING VIDEO READERS
