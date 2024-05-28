@@ -1,0 +1,11 @@
+__pycache__
+debug
+output
+input
+*.jpg
+*.png
+*.mp4
+*.avi
+*.pth
+*.env
+requirements.txt
