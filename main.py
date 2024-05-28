@@ -31,7 +31,7 @@ def main(args):
 
         final_image, final_mask = image_compositer.process_image(fg_image, bg_image, bbox)
 
-        image_writer.write_image(final_image,config.output_path, 'final_image.jpg')
+        image_writer.write_image(final_image, config.output_path, 'final_image.jpg')
         image_writer.write_image(final_mask, config.output_path, 'final_mask.jpg')
 
     elif config.input_type == 'composite':

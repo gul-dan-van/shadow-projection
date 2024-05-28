@@ -74,6 +74,7 @@ class MyApp:
         else:
             self.app.run(debug=True)
 
+
 if __name__ == '__main__':
     config_manager = ConfigManager()
     config = config_manager.get_config('config.env')
