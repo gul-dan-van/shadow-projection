@@ -3,45 +3,67 @@ import queue
 from threading import Thread, Event
 from contextlib import contextmanager
 from typing import Dict, Tuple, Union
+from io import BytesIO
 
 import cv2
 import numpy as np
+from flask import Request
 
 
 class ImageReader:
     """Class for reading images."""
 
-    def __init__(self, image_path: str) -> None:
+    def __init__(self, source: Union[str, Request] = None) -> None:
         """
         Initialize ImageReader.
 
         Args:
-            image_path (str): Path to the image file.
+            source (Union[str, Request], optional): Path to the image file or Flask request object. Defaults to None.
         """
         self.frame = None
-        self.image_path = image_path
+        self.source = source
 
-    def __read_image(self) -> np.ndarray:
+    def __read_image_from_path(self) -> np.ndarray:
         """Read an image from the specified path."""
-        if not exists(self.image_path):
+        if not exists(self.source):
             raise ValueError("Image Path is incorrect. Please check the provided path...")
         
+        return cv2.imread(self.source, cv2.IMREAD_UNCHANGED)
+
+    def __read_image_from_request(self, file_name: str, grayscale: bool) -> np.ndarray:
+        """Read an image from a Flask request."""
+        if file_name not in self.source.files:
+            raise ValueError(f"No '{file_name}' part in the request")
+        
+        file = self.source.files[file_name]
+        if file.filename == '':
+            raise ValueError("No selected file")
+        
+        image_stream = BytesIO(file.read())
+        image_stream.seek(0)
+        file_bytes = np.asarray(bytearray(image_stream.read()), dtype=np.uint8)
+ 
+        if grayscale:
+            return cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
+
         else:
-            return cv2.imread(self.image_path, cv2.IMREAD_UNCHANGED)
+            return cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
-    def get_image(self) -> np.ndarray:
-        """Get the image."""
-        self.frame = self.__read_image()
+    def get_image_from_path(self) -> np.ndarray:
+        """Get the image from a file path."""
+        self.frame = self.__read_image_from_path()
+        return self.frame
 
+    def get_image_from_request(self, file_name: str, grayscale: bool = False) -> np.ndarray:
+        """Get the image from a Flask request."""
+        self.frame = self.__read_image_from_request(file_name, grayscale)
         return self.frame
 
     def get_image_properties(self) -> Dict[str, int]:
         """Get properties of the image."""
-        image = self.get_image()
-
         return {
-            'frame_width': image.shape[1],
-            'frame_height': image.shape[0]
+            'frame_width': self.frame.shape[1],
+            'frame_height': self.frame.shape[0]
         }
 
 

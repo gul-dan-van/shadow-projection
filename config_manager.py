@@ -1,6 +1,7 @@
 """Condig Manager"""
 from os.path import exists
 from os import makedirs
+from shutil import rmtree
 from types import SimpleNamespace
 from dotenv import dotenv_values
 
@@ -59,10 +60,16 @@ class ConfigManager:
         if env_var is None:
             env_var = {}
 
-        for primary_dir in self.FOLDERS:
+        folders_to_create = ['input', 'output'] if not env_var['debug_mode'] else self.FOLDERS
+
+        for primary_dir in folders_to_create:
             if not exists(primary_dir):
                 makedirs(primary_dir)
-                env_var[f'{primary_dir.lower()}_path'] = primary_dir
+            elif primary_dir != 'input':
+                rmtree(primary_dir)
+                makedirs(primary_dir)
+
+            env_var[f'{primary_dir.lower()}_path'] = primary_dir
 
         return env_var
 
@@ -109,3 +116,8 @@ class ConfigManager:
 
         # Convert config to SimpleNamespace
         return SimpleNamespace(**env_var)
+
+    def display_config(config: SimpleNamespace) -> None:
+        for key, value in config.__dict__.items():
+            print(f"{key}: {value}")
+
