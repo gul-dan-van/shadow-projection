@@ -26,8 +26,8 @@ def main(args):
         bg_image_reader = ImageReader(config.background_image_path)
         image_writer = ImageWriter()
 
-        fg_image = fg_image_reader.get_image()
-        bg_image = bg_image_reader.get_image()
+        fg_image = fg_image_reader.get_image_from_path()
+        bg_image = bg_image_reader.get_image_from_path()
 
         final_image, final_mask = image_compositer.process_image(fg_image, bg_image, bbox)
 
@@ -40,9 +40,9 @@ def main(args):
         bg_image_reader = ImageReader(config.background_image_path)
         image_writer = ImageWriter()
 
-        composite_frame = composite_frame_reader.get_image()
-        composite_mask = composite_mask_reader.get_image()
-        bg_image = bg_image_reader.get_image()
+        composite_frame = composite_frame_reader.get_image_from_path()
+        composite_mask = composite_mask_reader.get_image_from_path()
+        bg_image = bg_image_reader.get_image_from_path()
 
         final_image, final_mask = image_compositer.process_composite(composite_frame, composite_mask, bg_image)
 
