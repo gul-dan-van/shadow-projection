@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  co-creation:
+    image: co-creation:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - env_file: config.env
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'  # Adjust the CPU limit as needed
+          memory: 512M  # Adjust the memory limit as needed
+          reservations:
+            devices:
+              - driver: nvidia
+                capabilities: [gpu]
+                count: all
+    restart: unless-stopped
