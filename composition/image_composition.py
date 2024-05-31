@@ -1,4 +1,6 @@
 """Image Composition"""
+from types import SimpleNamespace
+
 import numpy as np
 
 from writer import ImageWriter
@@ -39,7 +41,7 @@ class ImageComposition:
         image_composition_models(dict): Dictionary mapping model names to their classes.
     """
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: SimpleNamespace) -> None:
         """
         Initialize the ImageComposition object.
 

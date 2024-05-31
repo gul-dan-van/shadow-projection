@@ -16,7 +16,7 @@ class PCTNet(nn.Module):
         clamp=True, color_space = 'RGB', use_attn = False
     ):
         super(PCTNet, self).__init__()
-              
+
         self.color_space = color_space
         self.use_attn = use_attn
 

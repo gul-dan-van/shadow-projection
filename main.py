@@ -1,4 +1,4 @@
-"""Main Method"""
+"""MAIN METHOD"""
 import argparse
 from time import sleep
 
@@ -10,11 +10,14 @@ from composition.image_composition import ImageComposition
 
 
 def main(args):
-    """_summary_
+    """
+    Summary of the function goes here.
 
-    :param args: _description_
-    :type args: _type_
-    :raises ValueError: _description_
+    Args:
+        args: Description of the argument.
+
+    Raises:
+        ValueError: Explanation of when a ValueError is raised.
     """
     config_manager = ConfigManager()
     config = config_manager.get_config(args.env_path)

@@ -1,4 +1,5 @@
 import base64
+from types import SimpleNamespace
 
 import cv2
 from flask import Flask, request, render_template
@@ -9,7 +10,7 @@ from composition.image_composition import ImageComposition
 
 
 class MyApp:
-    def __init__(self, config):
+    def __init__(self, config: SimpleNamespace) -> None:
         """
         Initialize the Flask application.
 
@@ -32,7 +33,7 @@ class MyApp:
         """
         return render_template('index.html')
 
-    def process(self):
+    def process(self) -> str:
         """
         Process the image composition based on the images provided in the POST request.
 
