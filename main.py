@@ -2,9 +2,9 @@
 import argparse
 from time import sleep
 
-from config_manager import ConfigManager
-from reader import ImageReader, VideoReader
-from writer import ImageWriter, VideoWriter
+from utils.config_manager import ConfigManager
+from utils.reader import ImageReader, VideoReader
+from utils.writer import ImageWriter, VideoWriter
 
 from composition.image_composition import ImageComposition
 

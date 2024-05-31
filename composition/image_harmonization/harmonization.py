@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 
 from composition.image_harmonization.network.pctnet.net import PCTNet 
 from composition.image_harmonization.network.white_box.harmonizer import Harmonizer
-from composition.model_downloader import ModelDownloader
+from composition.utils.model_downloader import ModelDownloader
 
 
 class ImageHarmonization:

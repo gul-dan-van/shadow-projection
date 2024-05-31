@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from writer import ImageWriter
+from utils.writer import ImageWriter
 from composition.image_processing.image_blending import ImageBlending
 from composition.image_processing.smoothening import BorderSmoothing
 from composition.image_harmonization.harmonization import ImageHarmonization
