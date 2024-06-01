@@ -1,10 +1,10 @@
 # Co-Creation
 Co-Creation is an AI-powered Image Composition pipeline designed to seamlessly integrate your favorite stars and celebrities into your personal pics and videos. This tool leverages advanced machine learning techniques to provide realistic and high-quality image compositions.
 
-## Purpose
+## 1. Purpose
 This project allows users to create custom images and videos by placing chosen celebrities or characters into their media. It's perfect for creating personalized content for social media, special occasions, or just for fun.
 
-## Installation Steps
+## 2. Installation Steps
 
 ### Prerequisites
 - Python 3.10 (as specified in the Dockerfile)
@@ -22,7 +22,7 @@ These packages are specified in the `requirements.txt` file and are also install
 Additionally, other necessary Python packages listed in the `requirements.txt` file are installed to ensure the application runs correctly. These include various libraries that may be used for image processing, data handling, web frameworks, etc., depending on the specific needs of the project.
 
 
-### Setting up the environment
+### 3. Setting up the environment
 
 #### Using pip
 1. Create a virtual environment:
@@ -52,7 +52,7 @@ Additionally, other necessary Python packages listed in the `requirements.txt` f
    conda activate co-creation
    ```
 
-## Installing dependencies
+#### Installing dependencies
 After setting up and activating your environment, install the following dependencies:
 1. Install GPU-based dependencies:
    ```bash
@@ -66,7 +66,7 @@ After setting up and activating your environment, install the following dependen
    This command installs all the necessary Python packages listed in the `requirements.txt` file to ensure the application runs correctly.
 
 
-### Deploying the application
+## 3. Deploying the application
 1. Run the application:
    ```bash
    python main.py
