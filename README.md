@@ -1,6 +1,9 @@
 # Co-Creation
 Co-Creation is an AI-powered Image Composition pipeline designed to seamlessly integrate your favorite stars and celebrities into your personal pics and videos. This tool leverages advanced machine learning techniques to provide realistic and high-quality image compositions.
 
+For more information on the project please go to the following [notion document](https://www.notion.so/flamapp/Co-creation-Blending-66b95b501d8f40468c1b7efb003e73f0).
+
+
 ## 1. Installation Steps
 
 ### Prerequisites
