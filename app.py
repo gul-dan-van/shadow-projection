@@ -77,7 +77,8 @@ class MyApp:
 
 
 if __name__ == '__main__':
-    config_manager = ConfigManager()
-    config = config_manager.get_config('config.env')
+    config_manager = ConfigManager('envs/config.env')
+    config = config_manager.get_config()
+    print(config)
     my_app = MyApp(config)
     my_app.run()
