@@ -1,4 +1,4 @@
-"""Condig Manager"""
+"""Config Manager"""
 from os.path import exists
 from os import makedirs
 from shutil import rmtree
@@ -23,11 +23,11 @@ class ConfigManager:
 
     MODEL_TYPE = 'PCTNet'
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, env_path: str) -> None:
+        self.env_path = env_path
+        self.config = None
 
-    @staticmethod
-    def __read_env_file(env_path: str) -> dict:
+    def __read_env_file(self) -> dict:
         """
         Reads environment variables from the given file path.
 
@@ -37,10 +37,10 @@ class ConfigManager:
         Returns:
             dict: A dictionary containing the environment variables.
         """
-        if not exists(env_path):
+        if not exists(self.env_path):
             raise ValueError(
                 "Config path is incorrect, please check the path for the env file.")
-        return {key.lower(): val for key, val in dotenv_values(env_path).items()}
+        return {key.lower(): val for key, val in dotenv_values(self.env_path).items()}
 
     @staticmethod
     def __parse_bool(value: str) -> bool:
@@ -89,7 +89,7 @@ class ConfigManager:
                 raise ValueError(f"Missing required key: {
                                  key} for input type: {input_type}.")
 
-    def get_config(self, env_path: str) -> SimpleNamespace:
+    def generate_config(self) -> SimpleNamespace:
         """
         Gets the configuration based on the environment variables.
 
@@ -102,8 +102,8 @@ class ConfigManager:
         env_var = {}
 
         # Load environment variables from the specified file if it exists
-        if exists(env_path):
-            env_var.update(self.__read_env_file(env_path))
+        if exists(self.env_path):
+            env_var.update(self.__read_env_file())
 
         # Parse boolean values
         env_var['model_type'] = self.MODEL_TYPE
@@ -115,9 +115,13 @@ class ConfigManager:
         self.__validate_config(env_var)
 
         # Convert config to SimpleNamespace
-        return SimpleNamespace(**env_var)
+        self.config = SimpleNamespace(**env_var)
+    
+    def get_config(self) -> SimpleNamespace:
+        self.generate_config()
+        return self.config
 
-    def display_config(config: SimpleNamespace) -> None:
-        for key, value in config.__dict__.items():
+    def display_config(self) -> None:
+        for key, value in self.config.__dict__.items():
             print(f"{key}: {value}")
 
