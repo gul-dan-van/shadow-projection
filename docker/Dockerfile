@@ -28,10 +28,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip3 install --no-cache-dir torch==1.12.0+cu116 torchvision==0.13.0+cu116 torchaudio==0.12.0+cu116 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
-
 # Copy the rest of the application code to the working directory
-COPY . /app/
 COPY . .
-
 # Set the default command to run when the container starts
 ENTRYPOINT ["python", "app.py"]

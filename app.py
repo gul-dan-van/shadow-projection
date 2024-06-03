@@ -21,8 +21,13 @@ class MyApp:
         self.config = config
 
         # Initialize routes
-        self.app.add_url_rule('/', view_func=self.index)
-        self.app.add_url_rule('/process_composite', view_func=self.process, methods=['POST'])
+        self.app.add_url_rule("/cocreation/", view_func=self.index)
+        self.app.add_url_rule(
+            "/cocreation/process_composite", view_func=self.process, methods=["POST"]
+        )
+        self.app.add_url_rule(
+            "/cocreation/health", view_func=self.health_check, methods=["GET"]
+        )
 
     def index(self):
         """
@@ -31,7 +36,7 @@ class MyApp:
         Returns:
             str: Rendered HTML for index page.
         """
-        return render_template('index.html')
+        return render_template("index.html")
 
     def process(self) -> str:
         """
@@ -48,36 +53,52 @@ class MyApp:
             image_reader = ImageReader(request)
 
             try:
-                composite_frame = image_reader.get_image_from_request('composite_frame')
-                composite_mask = image_reader.get_image_from_request('composite_mask', grayscale=True)
-                bg_image = image_reader.get_image_from_request('background_image')
+                composite_frame = image_reader.get_image_from_request("composite_frame")
+                composite_mask = image_reader.get_image_from_request(
+                    "composite_mask", grayscale=True
+                )
+                bg_image = image_reader.get_image_from_request("background_image")
 
             except ValueError as e:
-                return render_template('error.html', error=f"Error processing image: {e}"), 400
+                return (
+                    render_template("error.html", error=f"Error processing image: {e}"),
+                    400,
+                )
 
-            final_image, _ = image_composer.process_composite(composite_frame, composite_mask, bg_image)
+            final_image, _ = image_composer.process_composite(
+                composite_frame, composite_mask, bg_image
+            )
 
             # Convert the final image to base64 for embedding in HTML
-            _, final_image_encoded = cv2.imencode('.jpg', final_image)
+            _, final_image_encoded = cv2.imencode(".jpg", final_image)
             final_image_base64 = base64.b64encode(final_image_encoded).decode()
 
-            return render_template('result.html', result=final_image_base64)
+            return render_template("result.html", result=final_image_base64)
 
         except Exception as e:
-            return render_template('error.html', error=f"Internal server error: {e}"), 500
+            return (
+                render_template("error.html", error=f"Internal server error: {e}"),
+                500,
+            )
+
+    def health_check(self):
+        """
+        Health check endpoint.
+        """
+        return "OK"
 
     def run(self):
         """
         Run the Flask application.
         """
         if not self.config.debug_mode:
-            self.app.run(debug=False)
+            self.app.run(debug=False, port=8000)
         else:
-            self.app.run(debug=True)
+            self.app.run(debug=True, port=8000)
 
 
-if __name__ == '__main__':
-    config_manager = ConfigManager('envs/config.env')
+if __name__ == "__main__":
+    config_manager = ConfigManager("envs/config.env")
     config = config_manager.get_config()
     print(config)
     my_app = MyApp(config)

@@ -7,4 +7,4 @@ input
 *.mp4
 *.avi
 *.pth
-*.env
+# *.env
