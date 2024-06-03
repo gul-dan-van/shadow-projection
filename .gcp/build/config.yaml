@@ -1,0 +1,50 @@
+steps:
+  - name: "alpine/git"
+    secretEnv: ["SSH_KEY"]
+    entrypoint: "ash"
+    args:
+      - -c
+      - |
+        mkdir -p /root/.ssh
+        echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+        chmod 400 /root/.ssh/id_rsa
+        ssh-keyscan github.com > /root/.ssh/known_hosts
+        git remote set-url origin git@github.com:homingos/$REPO_NAME.git
+        git submodule update --init
+        git lfs install
+        git lfs pull
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-f",
+        ".docker/Dockerfile",
+        "-t",
+        "gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA",
+      ]
+  - name: "ubuntu"
+    env:
+      - "BUILD_ENV=${_BUILD_ENV}"
+      - "PROJECT_ID=${PROJECT_ID}"
+    script: SOURCE_DIR=".k8s/$BUILD_ENV/" && cp -r $SOURCE_DIR .k8s/common/ && apt-get update -y && apt-get install gettext-base && mkdir .k8s/common/generated && for f in $(find .k8s/common/ -regex '.*\.ya*ml'); do envsubst < $f > ".k8s/common/generated/$(basename $f)"; done
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=.k8s/common/generated/
+      - --image=gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA
+      - --location=asia-south1
+      - --cluster=${_CLUSTER_NAME}
+      - --timeout=40m
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/SSH_KEY/versions/latest
+      env: "SSH_KEY"
