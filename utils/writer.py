@@ -1,5 +1,6 @@
 """Writer Classes"""
 import cv2
+import numpy as np 
 from os.path import join
 
 
@@ -7,7 +8,7 @@ class ImageWriter:
     """Class for writing images."""
 
     @staticmethod
-    def write_image(image, folder_path: str, file_name: str) -> bool:
+    def write_image(image: np.ndarray, folder_path: str, file_name: str) -> bool:
         """
         Write an image to the specified path.
 
@@ -18,7 +19,10 @@ class ImageWriter:
         Returns:
             bool: True if the image was successfully written, False otherwise.
         """
-        return cv2.imwrite(join(folder_path, file_name), image)
+        if isinstance(image, np.ndarray):
+            return cv2.imwrite(join(folder_path, file_name), image)
+        else:
+            raise ValueError("Please pass your image in a numpy array format....")
 
 
 class VideoWriter:
