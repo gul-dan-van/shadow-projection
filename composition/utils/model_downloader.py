@@ -23,6 +23,7 @@ class ModelDownloader:
         """
         self.config = config
         self.model_path = join(model_folder_path, f'{config.model_type.lower()}.pth')
+        self.bucket_name = 'flamai'
 
         # Remove existing model folder if it exists
         if not exists(join(model_folder_path)):
@@ -37,4 +38,10 @@ class ModelDownloader:
         """
         print('Downloading models ...')
         command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.config.model_type.lower()}.pth -O {self.model_path}"
-        subprocess.run(command, shell=True)
+        process = subprocess.Popen(command, shell=True)
+        process.wait()
+        
+
+    
+
+

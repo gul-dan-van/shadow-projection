@@ -54,8 +54,8 @@ class ImageHarmonization:
             weights_path = f'{self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
 
         # LOADING THE MODELS
-        if not exists(weights_path):
-            raise ValueError('Image Harmonizer Model Path does not exist!!')
+        # if not exists(weights_path):
+        #     raise ValueError('Image Harmonizer Model Path does not exist!!')
 
         if config.model_type in self.image_harmonization_models.keys():
             self.model = self.image_harmonization_models[config.model_type]()
