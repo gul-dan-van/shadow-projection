@@ -1,14 +1,12 @@
-import shutil
 import subprocess
-
-from types import SimpleNamespace
 from os import makedirs
-from os.path import exists, join
+from os.path import exists, join, basename
+from types import SimpleNamespace
 
 
 class ModelDownloader:
     """
-    A class to handle downloading models from a cloud storage bucket.
+    Class for handling the download of models from a cloud storage bucket.
 
     :param config: Configuration object containing model bucket details.
     :type config: SimpleNamespace
@@ -24,29 +22,19 @@ class ModelDownloader:
         :param model_folder_path: Local path to save downloaded models.
         """
         self.config = config
-        self.model_folder_path = model_folder_path
+        self.model_path = join(model_folder_path, f'{config.model_type.lower()}.pth')
 
         # Remove existing model folder if it exists
-        if exists(self.model_folder_path):
-            shutil.rmtree(self.model_folder_path)
+        if not exists(join(model_folder_path)):
+            makedirs(join(model_folder_path))
     
-    def download_models(self, model_type: str) -> str:
+    def download_models(self) -> str:
         """
         Downloads all models of a specified type from the configured cloud storage bucket.
-
-        :param model_type: The type of models to download.
-        :type model_type: str
+        
         :return: The local path to the downloaded models.
         :rtype: str
         """
-        model_path = join(self.model_folder_path, model_type)
         print('Downloading models ...')
-        
-        # Create model path if it does not exist
-        if not exists(model_path):
-            makedirs(model_path)
-        
-        # Construct and execute the download command
-        gsutil_download_path = f"gsutil -m cp gs://{self.config.model_bucket_name}/*.* {model_path}"
-        subprocess.run(gsutil_download_path, shell=True)
-        return model_path
+        command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.config.model_type.lower()}.pth -O {self.model_path}"
+        subprocess.run(command, shell=True)
