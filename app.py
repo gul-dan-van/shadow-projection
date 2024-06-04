@@ -24,12 +24,8 @@ class MyApp:
 
         # Initialize routes
         self.app.add_url_rule("/cocreation/", view_func=self.index)
-        self.app.add_url_rule(
-            "/cocreation/process_composite", view_func=self.process, methods=["POST"]
-        )
-        self.app.add_url_rule(
-            "/cocreation/health", view_func=self.health_check, methods=["GET"]
-        )
+        self.app.add_url_rule("/cocreation/process_composite", view_func=self.process, methods=["POST"])
+        self.app.add_url_rule("/cocreation/health", view_func=self.health_check, methods=["GET"])
 
     def index(self):
         """
@@ -96,7 +92,7 @@ class MyApp:
 
 
 if __name__ == "__main__":
-    config_manager = ConfigManager("envs/config.env")
+    config_manager = ConfigManager(default_config_flag=True)
     config = config_manager.get_config()
     my_app = MyApp(config)
     my_app.run()
