@@ -86,8 +86,7 @@ class ConfigManager:
 
         for key in self.REQUIRED_KEYS[input_type]:
             if key not in config:
-                raise ValueError(f"Missing required key: {
-                                 key} for input type: {input_type}.")
+                raise ValueError(f"Missing required key: {key} for input type: {input_type}.")
 
     def generate_config(self) -> SimpleNamespace:
         """

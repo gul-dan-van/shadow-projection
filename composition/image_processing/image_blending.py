@@ -1,5 +1,6 @@
 """Image Blending Class"""
 from types import SimpleNamespace
+from typing import Tuple, List
 
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ class ImageBlending:
         mask = np.where(alpha_channel > self.ALPHA_THRESHOLD, 255, 0).astype(np.uint8)
         return mask
 
-    def infer(self, fg_image: np.ndarray, bg_img: np.ndarray, bbox: list) -> tuple[np.ndarray, np.ndarray]:
+    def infer(self, fg_image: np.ndarray, bg_img: np.ndarray, bbox: List[int]) -> Tuple[np.ndarray, np.ndarray]:
         """
         Blend foreground and background images using the provided bounding box.
 
@@ -61,7 +62,7 @@ class ImageBlending:
         return comp_img, comp_mask
 
     @staticmethod
-    def crop_and_resize_foreground(fg_image: np.ndarray, fg_mask: np.ndarray, bbox: list) -> tuple[np.ndarray, np.ndarray]:
+    def crop_and_resize_foreground(fg_image: np.ndarray, fg_mask: np.ndarray, bbox: List[int]) -> Tuple[np.ndarray, np.ndarray]:
         """
         Crop and resize the foreground image and mask based on the provided bounding box.
 
