@@ -86,9 +86,9 @@ class MyApp:
         Run the Flask application.
         """
         if not self.config.debug_mode:
-            self.app.run(host='0.0.0.0', debug=False, port=8000)
+            self.app.run(debug=False, port=8000, host="0.0.0.0")
         else:
-            self.app.run(debug=True, port=8000)
+            self.app.run(debug=True, port=8000, host="0.0.0.0")
 
 
 if __name__ == "__main__":
