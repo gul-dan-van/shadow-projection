@@ -1,6 +1,7 @@
 from os.path import exists
 from PIL import Image
 from types import SimpleNamespace
+import warnings
 
 import numpy as np
 import cv2
@@ -17,6 +18,9 @@ class ImageHarmonization:
     """
     Class to handle image harmonization using different models like PCTNet and Harmonizer.
     """
+
+    MODEL_PATH = "./composition/image_harmonization/models"
+
     def __init__(self, config: SimpleNamespace) -> None:
         """
         Initialize the ImageHarmonization class with configuration and model setup.
@@ -28,7 +32,8 @@ class ImageHarmonization:
         self.config = config
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         torch.backends.cudnn.enabled = True if torch.backends.cudnn.is_available() else False
-        
+        warnings.filterwarnings("ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
+
         # SETTING THE MODELS
         self.image_harmonization_models = {
             'PCTNet': PCTNet,
@@ -41,8 +46,12 @@ class ImageHarmonization:
         ])
 
         # DOWNLOADING THE MODELS
-        self.model_downloader = ModelDownloader(config, './composition/image_harmonization/model')
-        weights_path = self.model_downloader.download_models(config.model_type)
+        if not exists(self.MODEL_PATH):
+            self.model_downloader = ModelDownloader(config, self.MODEL_PATH)
+            self.model_downloader.download_models()
+            weights_path = self.model_downloader.model_path
+        else:
+            weights_path = f'{self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
 
         # LOADING THE MODELS
         if not exists(weights_path):

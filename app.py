@@ -19,6 +19,8 @@ class MyApp:
         """
         self.app = Flask(__name__)
         self.config = config
+        # Initializing Image Composition Models
+        self.image_composer = ImageComposition(self.config)
 
         # Initialize routes
         self.app.add_url_rule("/cocreation/", view_func=self.index)
@@ -46,9 +48,6 @@ class MyApp:
             str: Rendered HTML for the result page displaying the composed image.
         """
         try:
-            # Configuration management
-            image_composer = ImageComposition(self.config)
-
             # Process POST request
             image_reader = ImageReader(request)
 
@@ -65,9 +64,8 @@ class MyApp:
                     400,
                 )
 
-            final_image, _ = image_composer.process_composite(
-                composite_frame, composite_mask, bg_image
-            )
+            final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, bg_image)
+
 
             # Convert the final image to base64 for embedding in HTML
             _, final_image_encoded = cv2.imencode(".jpg", final_image)
@@ -100,6 +98,5 @@ class MyApp:
 if __name__ == "__main__":
     config_manager = ConfigManager("envs/config.env")
     config = config_manager.get_config()
-    print(config)
     my_app = MyApp(config)
     my_app.run()

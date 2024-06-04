@@ -1,4 +1,3 @@
-import argparse
 import pytest
 from app import MyApp
 from utils.config_manager import ConfigManager

@@ -21,7 +21,10 @@ class ImageReader:
             source (Union[str, Request], optional): Path to the image file or Flask request object. Defaults to None.
         """
         self.frame = None
-        self.source = source
+        if not(isinstance(source, str) or isinstance(source, Request)):
+            raise ValueError("Please Enter the source path in the correct format")
+        else:
+            self.source = source
 
     def __read_image_from_path(self) -> np.ndarray:
         """Read an image from the specified path."""
@@ -36,11 +39,11 @@ class ImageReader:
             raise ValueError(f"No '{file_name}' part in the request")
         
         file = self.source.files[file_name]
-        if file.filename == '':
+        if file == '':
             raise ValueError("No selected file")
         
+        
         image_stream = BytesIO(file.read())
-        image_stream.seek(0)
         file_bytes = np.asarray(bytearray(image_stream.read()), dtype=np.uint8)
  
         if grayscale:
@@ -117,19 +120,3 @@ class VideoReader:
             'resolution': (frame_width, frame_height),
             'fps': float(self.stream.get(cv2.CAP_PROP_FPS))
         }
-
-    @contextmanager
-    def video_capture(self) -> cv2.VideoCapture:
-        """
-        Context manager for accessing the video stream.
-
-        Yields:
-            cv2.VideoCapture: Video stream object.
-        """
-        try:
-
-            yield self.stream
-
-        finally:
-            self.stop_event.set()
-            self.stream.release()
