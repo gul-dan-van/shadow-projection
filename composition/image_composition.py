@@ -61,6 +61,18 @@ class ImageComposition:
             'harmonization': ImageHarmonization,
         }
 
+        self.model_map = self.__initialize_models()
+
+    def __initialize_models(self) -> dict:
+        model_map = {}
+
+        for model_type in self.model_list:
+            if model_type in self.image_composition_models:
+                print(f"Selected {model_type.capitalize()} Model...")
+                model_map[model_type] = self.image_composition_models[model_type](self.config)
+
+        return model_map
+
     @handle_exceptions
     def process_composite(self, frame: np.ndarray, mask: np.ndarray, bg_image: np.ndarray) -> tuple:
         """
@@ -73,20 +85,20 @@ class ImageComposition:
 
         Returns:
             tuple[ndarray, ndarray]: Processed composite frame and mask.
+
         """
-        for model in self.model_list:
-            if model in self.image_composition_models:
-                print(model)
-                model_obj = self.image_composition_models[model](self.config)
-                if model in ['border-smoothing']:
-                    frame = model_obj.infer(frame, mask, bg_image)
-                else:
-                    frame = model_obj.infer(frame, mask)
+        for model_type in self.model_list:
 
-                if self.debug_mode:
-                    self.image_writer.write_image(frame, self.config.debug_path, f'{model}.jpg')
+            if model_type in ['border-smoothing']:
+                frame = self.model_map[model_type].infer(frame, mask, bg_image)
 
-        return frame, mask
+            else:
+                frame = self.model_map[model_type].infer(frame, mask)
+
+            if self.debug_mode:
+                self.image_writer.write_image(frame, self.config.debug_path, f'{model_type}.jpg')
+
+            return frame, mask
 
     @handle_exceptions
     def process_image(self, fg_image: np.ndarray, bg_image: np.ndarray, bbox: list) -> tuple:

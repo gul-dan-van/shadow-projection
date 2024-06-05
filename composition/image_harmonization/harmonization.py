@@ -144,7 +144,8 @@ class ImageHarmonization:
         img_lr = self.transformer(img_lr).float().to(self.device)
         mask_lr = self.transformer(mask_lr).float().to(self.device)
 
-        outputs = self.model(img_lr, img, mask_lr, mask)
+        with torch.no_grad():
+            outputs = self.model(img_lr, img, mask_lr, mask)
 
         if len(outputs.shape) == 4:
             outputs = outputs.squeeze(0)
@@ -169,5 +170,5 @@ class ImageHarmonization:
             'PCTNet': self.get_pct_harmonized_image,
             'Harmonizer': self.get_whitebox_harmonized_image
         }
-
+        print("Image Harmonization Complete....")
         return image_harmonization_methods[self.config.model_type](composite_frame, composite_mask)

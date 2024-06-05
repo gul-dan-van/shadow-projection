@@ -106,4 +106,5 @@ class BorderSmoothing:
                     (inv_mask.astype(np.bool_) & mask.astype(np.bool_))).astype(np.uint8)
 
         blended_image_with_smoothing = self.interpolate_with_smoothing(bg, comp, fin_mask)
+        print("Border Smoothening Complete....")
         return blended_image_with_smoothing

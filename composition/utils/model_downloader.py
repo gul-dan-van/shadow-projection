@@ -1,6 +1,6 @@
 import subprocess
 from os import makedirs
-from os.path import exists, join, basename
+from os.path import exists, join
 from types import SimpleNamespace
 
 
