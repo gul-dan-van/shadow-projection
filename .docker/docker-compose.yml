@@ -1,20 +1,13 @@
-version: '3.8'
+version: '2.27'
 
 services:
   co-creation:
-    image: co-creation:latest
+    image: cocreation-cpu
     ports:
-      - "5000:5000"
-    environment:
-      - env_file: config.env
+      - "8000:8000"
+    # Limit CPU and memory usage
     deploy:
       resources:
         limits:
-          cpus: '1.0'  # Adjust the CPU limit as needed
-          memory: 512M  # Adjust the memory limit as needed
-          reservations:
-            devices:
-              - driver: nvidia
-                capabilities: [gpu]
-                count: all
-    restart: unless-stopped
+          cpus: "1"
+          memory: 2G
