@@ -69,7 +69,7 @@ After setting up and activating your environment, install the following dependen
 ## 2. Deploying the Application
 1. **Run the application**:
    ```bash
-   python main.py
+   python test.py
    ```
    This command starts the application, which allows you to select and place your favorite celebrities or characters into your personal pics and videos.
 
