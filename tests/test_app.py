@@ -100,3 +100,26 @@ class TestMyApp:
         response = client.post(API_URL_PATHS['process_composite_frames'], content_type='multipart/form-data', data=data)
         assert response.status_code == 200
         assert b'Result' in response.data
+
+    def test_health_check_route(self, client):
+        """
+        Test the health check route for a successful response.
+        
+        Args:
+            client (FlaskClient): The test client for the Flask application.
+        """
+        response = client.get('/cocreation/health')
+        assert response.status_code == 200
+        assert response.data == b'OK'
+
+    def test_health_check_route_negative(self, client):
+        """
+        Test the health check route for a negative response.
+        
+        Args:
+            client (FlaskClient): The test client for the Flask application.
+        """
+        with pytest.raises(Exception):
+            response = client.get('/cocreation/health')
+            assert response.status_code != 200
+            assert response.data != b'OK'
