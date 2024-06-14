@@ -17,7 +17,7 @@ class MyApp:
         Args:
             config: Configuration object containing application settings.
         """
-        self.app = Flask(__name__)
+        self.app = Flask(__name__, template_folder="src/templates/")
         self.config = config
         # Initializing Image Composition Models
         self.image_composer = ImageComposition(self.config)

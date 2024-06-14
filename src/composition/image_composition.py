@@ -3,10 +3,10 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from utils.writer import ImageWriter
-from composition.image_processing.image_blending import ImageBlending
-from composition.image_processing.smoothening import BorderSmoothing
-from composition.image_harmonization.harmonization import ImageHarmonization
+from src.utils.writer import ImageWriter
+from src.composition.image_processing.image_blending import ImageBlending
+from src.composition.image_processing.smoothening import BorderSmoothing
+from src.composition.image_harmonization.harmonization import ImageHarmonization
 
 
 
