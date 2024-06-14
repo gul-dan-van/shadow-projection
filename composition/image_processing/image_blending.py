@@ -106,4 +106,5 @@ class ImageBlending:
         x2 = int(np.max(binmask[1]))
         y1 = int(np.min(binmask[0]))
         y2 = int(np.max(binmask[0]))
+        print("Image Blending is complete...!!")
         return [x1, y1, x2 + 1, y2 + 1]

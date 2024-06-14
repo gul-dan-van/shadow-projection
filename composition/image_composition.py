@@ -114,7 +114,7 @@ class ImageComposition:
         Returns:
             tuple[ndarray, ndarray]: Processed composite frame and mask.
         """
-        image_blender = self.image_composition_models['blending'](self.config)
+        image_blender = self.model_map['blending'](self.config)
         frame, mask = image_blender.infer(fg_image, bg_image, bbox)
 
         if self.debug_mode:
