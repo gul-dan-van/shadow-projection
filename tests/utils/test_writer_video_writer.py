@@ -4,7 +4,7 @@ from os.path import join
 
 import pytest
 import numpy as np
-from utils.writer import VideoWriter
+from src.utils.writer import VideoWriter
 
 # CREATION OF MOCKING VIDEO READER TO ALLOW TO WRITE VIDEO
 OUTPUT_VIDEO_PATH='./output/'

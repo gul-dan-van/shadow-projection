@@ -1,7 +1,7 @@
 """UNIT TEST CODE FOR CONFIG MANAGER"""
 import pytest
 from unittest.mock import mock_open, patch
-from utils.config_manager import ConfigManager
+from src.utils.config_manager import ConfigManager
 
 ENV_PATH = 'envs/config_test.env'
 MOCK_ENV_FILE = "DEBUG_MODE=TRUE\nINPUT_TYPE=composite\nCOMPOSITE_FRAME_PATH= path/to/composite.jpg\nCOMPOSITE_MASK_PATH= path/to/composite.jpg\nBACKGROUND_IMAGE_PATH= path/to/background.jpg\nMODEL_LIST='harmonization,border-smoothing'\nWEIGHTS_PATH=composition/image_harmonization/model/pctnet.pth\n"

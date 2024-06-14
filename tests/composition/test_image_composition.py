@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 from types import SimpleNamespace
-from composition.image_composition import ImageComposition
+from src.composition.image_composition import ImageComposition
 
 class TestImageComposition:
     COMPOSITE_ENV_VAR = {

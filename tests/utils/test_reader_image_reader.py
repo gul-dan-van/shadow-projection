@@ -4,7 +4,7 @@ import pytest
 from werkzeug.test import EnvironBuilder
 import numpy as np
 
-from utils.reader import ImageReader
+from src.utils.reader import ImageReader
 from tests.helper import *
 
 

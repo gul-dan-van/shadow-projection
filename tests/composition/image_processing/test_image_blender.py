@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from types import SimpleNamespace
-from composition.image_processing.image_blending import ImageBlending
+from src.composition.image_processing.image_blending import ImageBlending
 
 
 class TestImageBlending:

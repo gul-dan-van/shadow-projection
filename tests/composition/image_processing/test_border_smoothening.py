@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 import numpy as np
 import pytest
-from composition.image_processing.smoothening import BorderSmoothing
+from src.composition.image_processing.smoothening import BorderSmoothing
 
 
 class TestBorderSmoothing:

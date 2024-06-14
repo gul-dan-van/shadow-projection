@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from time import sleep
 from unittest.mock import MagicMock
-from utils.reader import VideoReader
+from src.utils.reader import VideoReader
 
 
 class TestVideoReader:

@@ -1,7 +1,7 @@
 import pytest
 from os.path import join
 from app import MyApp
-from utils.config_manager import ConfigManager
+from src.utils.config_manager import ConfigManager
 
 from tests.helper import *
 

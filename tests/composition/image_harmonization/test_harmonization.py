@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from types import SimpleNamespace
-from composition.image_harmonization.harmonization import ImageHarmonization
+from src.composition.image_harmonization.harmonization import ImageHarmonization
 
 MODEL_PATH="composition/image_harmonization/models"
 
