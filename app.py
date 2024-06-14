@@ -1,3 +1,4 @@
+import os
 import base64
 from types import SimpleNamespace
 
@@ -17,7 +18,7 @@ class MyApp:
         Args:
             config: Configuration object containing application settings.
         """
-        self.app = Flask(__name__, template_folder="src/templates/")
+        self.app = Flask(__name__, template_folder=os.path.join('./', 'src', 'templates'))
         self.config = config
         # Initializing Image Composition Models
         self.image_composer = ImageComposition(self.config)
