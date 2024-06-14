@@ -4,9 +4,9 @@ from types import SimpleNamespace
 import cv2
 from flask import Flask, request, render_template
 
-from utils.config_manager import ConfigManager
-from utils.reader import ImageReader
-from composition.image_composition import ImageComposition
+from src.utils.config_manager import ConfigManager
+from src.utils.reader import ImageReader
+from src.composition.image_composition import ImageComposition
 
 
 class MyApp:

@@ -2,11 +2,10 @@
 import argparse
 from time import sleep
 
-from utils.config_manager import ConfigManager
-from utils.reader import ImageReader, VideoReader
-from utils.writer import ImageWriter, VideoWriter
-
-from composition.image_composition import ImageComposition
+from src.utils.config_manager import ConfigManager
+from src.utils.reader import ImageReader, VideoReader
+from src.utils.writer import ImageWriter, VideoWriter
+from src.composition.image_composition import ImageComposition
 
 
 def main(args):
