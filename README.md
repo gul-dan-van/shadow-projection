@@ -65,8 +65,22 @@ After setting up and activating your environment, install the following dependen
    ```
    This command installs all the necessary Python packages listed in the `requirements.txt` file to ensure the application runs correctly.
 
+## 2. Testing the Application
+To develop and run the unit tests for the Co-Creation project, follow these steps:
 
-## 2. Deploying the Application
+1. Navigate to the `tests` folder in the project directory.
+2. Write unit tests using pytest to cover different scenarios and functionalities.
+3. Ensure each test is independent and follows the Arrange-Act-Assert (AAA) pattern.
+4. Document each test case following the PEP 8 format for better readability.
+5. Utilize parametrization to run tests with different inputs.
+6. Use fixtures for reusable setup and teardown operations.
+7. Validate the expected behavior of the code with meaningful assertions.
+8. Check the @README.md file for detailed guidelines on writing effective unit tests.
+
+For more comprehensive instructions on generating and testing the Co-Creation codebase, refer to the [Testing Documentation](./tests/TESTING.md) file in the project's `test` directory.
+
+
+## 3. Deploying the Application
 1. **Run the application**:
    ```bash
    python test.py
@@ -85,18 +99,3 @@ After setting up and activating your environment, install the following dependen
    docker run --gpus all -d -p 5000:5000 co-creation
    ```
  This command allows to the docker container to access the GPU and increase performance of the application .
-
-
-## 3. Testing the Application
-To develop and run the unit tests for the Co-Creation project, follow these steps:
-
-1. Navigate to the `tests` folder in the project directory.
-2. Write unit tests using pytest to cover different scenarios and functionalities.
-3. Ensure each test is independent and follows the Arrange-Act-Assert (AAA) pattern.
-4. Document each test case following the PEP 8 format for better readability.
-5. Utilize parametrization to run tests with different inputs.
-6. Use fixtures for reusable setup and teardown operations.
-7. Validate the expected behavior of the code with meaningful assertions.
-8. Check the @README.md file for detailed guidelines on writing effective unit tests.
-
-For more comprehensive instructions on generating and testing the Co-Creation codebase, refer to the [Testing Documentation](./tests/TESTING.md) file in the project's `test` directory.
