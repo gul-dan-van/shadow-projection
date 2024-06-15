@@ -19,7 +19,7 @@ class ImageHarmonization:
     Class to handle image harmonization using different models like PCTNet and Harmonizer.
     """
 
-    MODEL_PATH = "./composition/image_harmonization/models"
+    MODEL_PATH = "./src/composition/image_harmonization/models"
 
     def __init__(self, config: SimpleNamespace) -> None:
         """
