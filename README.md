@@ -89,13 +89,25 @@ For more comprehensive instructions on generating and testing the Co-Creation co
 
 	**NOTE**: By default, the application runs in production mode. In config,env, set `DEBUG_MODE` to `TRUE` to run the application in 	debug mode.
 
-2. **Running on Docker**:
+2. **Running on Docker - CPU Version**:
    ```bash
-   docker run -d -p 5000:5000 co-creation
+   docker build --rm -p 8000:8000 -f .docker/Dockerfile -t cocreation-cpu:latest .
    ```
-   This command starts the application, which allows you to select and place your favorite celebrities or characters into your personal pics and videos.
+   This command builds the Docker image for the CPU version, which can be installed without the requirement of Nvidia GPUs.
    
    ```bash
-   docker run --gpus all -d -p 5000:5000 co-creation
+   docker-compose -f .docker/docker-compose.yml up
    ```
- This command allows to the docker container to access the GPU and increase performance of the application .
+   This compose command starts the application using the CPU version.
+
+3. **Running on Docker - GPU Version**:
+   ```bash
+   docker build --rm -p 8000:8000 -f .docker/Dockerfile_gpu.dockerfile -t co-creation:latest .
+   ```
+   This command builds the Docker image for the GPU version, which requires CUDA based GPUs to work.
+   
+   ```bash
+   docker-compose -f .docker/docker-compose_gpu.yml up
+   ```
+   This compose command starts the application using the GPU version.
+
