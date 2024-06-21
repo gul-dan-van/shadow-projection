@@ -1,7 +1,7 @@
 from os.path import exists
 import queue
+import requests
 from threading import Thread, Event
-from contextlib import contextmanager
 from typing import Dict, Tuple, Union
 from io import BytesIO
 
@@ -41,14 +41,29 @@ class ImageReader:
         file = self.source.files[file_name]
         if file == '':
             raise ValueError("No selected file")
-        
-        
+
         image_stream = BytesIO(file.read())
         file_bytes = np.asarray(bytearray(image_stream.read()), dtype=np.uint8)
  
         if grayscale:
             return cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
 
+        else:
+            return cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
+    
+    def __read_image_from_url(self, image_url: str, grayscale: bool) -> np.ndarray:
+        """Read an image from a GET request containing JSON data."""
+        
+        image_response = requests.get(image_url)
+        
+        if image_response.status_code != 200:
+            raise ValueError(f"Failed to fetch image from URL: {image_url}")
+        
+        image_bytes = image_response.content
+        file_bytes = np.asarray(bytearray(image_bytes), dtype=np.uint8)
+        
+        if grayscale:
+            return cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
         else:
             return cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
@@ -62,11 +77,26 @@ class ImageReader:
         self.frame = self.__read_image_from_request(file_name, grayscale)
         return self.frame
 
+    def get_image_from_url(self, url: str, grayscale: bool = False) -> np.ndarray:
+        self.frame = self.__read_image_from_url(url, grayscale)
+
     def get_image_properties(self) -> Dict[str, int]:
         """Get properties of the image."""
         return {
             'frame_width': self.frame.shape[1],
             'frame_height': self.frame.shape[0]
+        }
+
+    def generate_urls(self, background_key: str, foreground_mask_key: str, signed_url_key: str) -> Dict[str, str]:
+        """Generate URLs for background image, foreground mask, and signed URL from the request."""
+        background_url = self.get_image_from_request(background_key)
+        foreground_mask_url = self.get_image_from_request(foreground_mask_key)
+        signed_url = self.get_output_url_from_request(signed_url_key)
+
+        return {
+            'url_id1': background_url,
+            'url_id2': foreground_mask_url,
+            'signed_url': signed_url
         }
 
 
