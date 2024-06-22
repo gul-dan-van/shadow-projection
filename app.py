@@ -23,13 +23,16 @@ def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray
 def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
     """ Uploads an image from a NumPy array to GCS using a pre-signed URL. """
     try:
-
         # Encode image array to bytes
         _, image_encoded = cv2.imencode(".png", image)
         image_bytes = image_encoded.tobytes()
 
+        headers = {
+            'Content-Type': 'image/png'
+        }
+
         # Perform PUT request to upload the file
-        response = requests.put(signed_url, data=image_bytes)
+        response = requests.put(signed_url, data=image_bytes, headers=headers)
         response.raise_for_status()  # Raise an exception for bad status codes
         print("Image uploaded successfully.")
         return True
@@ -71,6 +74,7 @@ class MyApp:
 
         try:
             start_time = time()
+
             # Process POST request
             image_reader = ImageReader(request)
         
@@ -153,4 +157,3 @@ if __name__ == "__main__":
     config = config_manager.get_config()
     my_app = MyApp(config)
     my_app.run()
-
