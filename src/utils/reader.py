@@ -51,9 +51,9 @@ class ImageReader:
         else:
             return cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
     
-    def __read_image_from_url(self, image_url: str, grayscale: bool) -> np.ndarray:
+    def __read_image_from_url(self, image_key: str, grayscale: bool) -> np.ndarray:
         """Read an image from a GET request containing JSON data."""
-        
+        image_url = self.source.json[image_key]
         image_response = requests.get(image_url)
         
         if image_response.status_code != 200:
@@ -77,8 +77,9 @@ class ImageReader:
         self.frame = self.__read_image_from_request(file_name, grayscale)
         return self.frame
 
-    def get_image_from_url(self, url: str, grayscale: bool = False) -> np.ndarray:
-        self.frame = self.__read_image_from_url(url, grayscale)
+    def get_image_from_url(self, image_key: str, grayscale: bool = False) -> np.ndarray:
+        self.frame = self.__read_image_from_url(image_key, grayscale)
+        return self.frame
 
     def get_image_properties(self) -> Dict[str, int]:
         """Get properties of the image."""
@@ -87,17 +88,9 @@ class ImageReader:
             'frame_height': self.frame.shape[0]
         }
 
-    def generate_urls(self, background_key: str, foreground_mask_key: str, signed_url_key: str) -> Dict[str, str]:
+    def generate_urls(self) -> Dict[np.ndarray, np.ndarray]:
         """Generate URLs for background image, foreground mask, and signed URL from the request."""
-        background_url = self.get_image_from_request(background_key)
-        foreground_mask_url = self.get_image_from_request(foreground_mask_key)
-        signed_url = self.get_output_url_from_request(signed_url_key)
-
-        return {
-            'url_id1': background_url,
-            'url_id2': foreground_mask_url,
-            'signed_url': signed_url
-        }
+        return self.source.json
 
 
 class VideoReader:

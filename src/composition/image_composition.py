@@ -104,7 +104,7 @@ class ImageComposition:
                 if self.debug_mode:
                     self.image_writer.write_image(frame, self.config.debug_path, f'{model_type}.jpg')
 
-                return frame, mask
+            return frame, mask
 
     @handle_exceptions
     def process_image(self, fg_image: np.ndarray, bg_image: np.ndarray, bbox: list) -> tuple:

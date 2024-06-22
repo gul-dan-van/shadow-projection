@@ -13,6 +13,30 @@ from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader
 from src.composition.image_composition import ImageComposition
 
+def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    fg_mask = np.where(fg_image[:, :, 3] > 128, 255, 0)
+    blended_image = np.copy(bg_image)
+    blended_image[fg_mask != 0] = fg_image[fg_mask != 0]
+    return blended_image.astype(np.uint8), fg_mask.astype(np.uint8)
+
+
+def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
+    """ Uploads an image from a NumPy array to GCS using a pre-signed URL. """
+    try:
+
+        # Encode image array to bytes
+        _, image_encoded = cv2.imencode(".png", image)
+        image_bytes = image_encoded.tobytes()
+
+        # Perform PUT request to upload the file
+        response = requests.put(signed_url, data=image_bytes)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        print("Image uploaded successfully.")
+        return True
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error uploading image: {e}")
+        return False
 
 class MyApp:
     def __init__(self, config: SimpleNamespace) -> None:
@@ -51,26 +75,25 @@ class MyApp:
             image_reader = ImageReader(request)
         
             try:
-                url_dict  =  image_reader.generate_urls("url_id1", "url_id2", "signed_url")
-
-                background_image = image_reader.get_image_from_url(url_dict['url_id1'])
-                foreground_image = image_reader.get_image_from_url(url_dict['url_id2'])
+                url_dict = request.json
+                background_image = image_reader.get_image_from_url('url_id1')
+                foreground_image = image_reader.get_image_from_url('url_id2')
                 composite_frame, composite_mask = simple_blend(foreground_image, background_image)
-
-                final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image)
-
-                print(f"Time taken to process image: {time() -  start_time:2f}")
-                
-                output_url = url_dict['signed_url']
-                send_time_start = time()
-                send_image_to_gcp(final_image, output_url)
-                print(f"Time taken to send image: {time() -  send_time_start:2f}")
-
+            
             except ValueError as e:
-                return 400
+                return "400"
+
+            final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
+            print(f"Time taken to process image: {time() -  start_time:2f}")
+            
+            output_url = url_dict['image_id']
+            send_time_start = time()
+            send_image_to_gcp(final_image, output_url)
+            print(f"Time taken to send image: {time() -  send_time_start:2f}")
+            return "200"
 
         except Exception as e:
-            return 500
+            return ("500", str(e))
 
     def composite_process(self) -> str:
         """
@@ -120,7 +143,7 @@ class MyApp:
         Run the Flask application.
         """
         if not self.config.debug_mode:
-            self.app.run(debug=False, port=8000, host="0.0.0.0")
+            self.app.run(debug=True, port=8000, host="0.0.0.0")
         else:
             self.app.run(debug=True, port=8000, host="0.0.0.0")
 
@@ -131,25 +154,3 @@ if __name__ == "__main__":
     my_app = MyApp(config)
     my_app.run()
 
-def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    fg_mask = fg_image[:, :, 3]
-    blended_image = np.copy(bg_image)
-    blended_image[fg_mask != 0] = fg_image[fg_mask != 0]
-    return blended_image, fg_mask
-
-
-def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
-    """ Uploads an image from a NumPy array to GCS using a pre-signed URL. """
-    try:
-        # Encode image array to bytes
-        _, image_encoded = cv2.imencode(".jpg", image)
-        image_bytes = image_encoded.tobytes()
-
-        # Perform PUT request to upload the file
-        response = requests.put(signed_url, data=image_bytes)
-        response.raise_for_status()  # Raise an exception for bad status codes
-        print("Image uploaded successfully.")
-        return True
-    except requests.exceptions.RequestException as e:
-        print(f"Error uploading image: {e}")
-        return False
