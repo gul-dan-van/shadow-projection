@@ -90,7 +90,7 @@ class MyApp:
             final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
             print(f"Time taken to process image: {time() -  start_time:2f}")
             
-            output_url = url_dict['image_id']
+            output_url = url_dict['signed_url']
             send_time_start = time()
             send_image_to_gcp(final_image, output_url)
             print(f"Time taken to send image: {time() -  send_time_start:2f}")
@@ -147,7 +147,7 @@ class MyApp:
         Run the Flask application.
         """
         if not self.config.debug_mode:
-            self.app.run(debug=True, port=8000, host="0.0.0.0")
+            self.app.run(debug=False, port=8000, host="0.0.0.0")
         else:
             self.app.run(debug=True, port=8000, host="0.0.0.0")
 
