@@ -47,7 +47,7 @@ class BorderSmoothing:
         Returns:
             ndarray: Extended binary mask.
         """
-        kernel = np.ones((3, self.smoothing_pixels * 2 + 1), np.uint8)
+        kernel = np.ones((1, self.smoothing_pixels * 2 + 1), np.uint8)
         mask_extended = cv2.dilate(mask, kernel, iterations=1)
         return mask_extended
 
@@ -81,7 +81,7 @@ class BorderSmoothing:
             comp_image = comp_image[:, :, :min_channels]
 
         mask_near = cv2.dilate(mask, None, iterations=1)
-        blurred_comp_near_mask = cv2.GaussianBlur(comp_image, (15, 15), self.smoothing_radius + 10)
+        blurred_comp_near_mask = cv2.GaussianBlur(comp_image, (15, 15), self.smoothing_radius + 2)
         blurred_bg_near_mask = cv2.GaussianBlur(bg_image, (0, 0), self.smoothing_radius)
         fin_blurred_near_mask = blurred_comp_near_mask / 3 + blurred_bg_near_mask / 3 + blurred_bg_near_mask / 3
 
