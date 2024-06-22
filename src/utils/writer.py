@@ -43,19 +43,28 @@ class VideoWriter:
 
     def __enter__(self):
         """Enter the context manager."""
-        self.video_writer = cv2.VideoWriter(self.output_path, self.fourcc, self.video_prop['fps'], self.video_prop['resolution'])
+        try:
+            self.video_writer = cv2.VideoWriter(self.output_path, self.fourcc, self.video_prop['fps'], self.video_prop['resolution'])
+        except Exception as e:
+            print(f"Error initializing VideoWriter: {e}")
         return self
 
-    def write_frame(self, frame) -> None:
+    def write_frame(self, frame: np.ndarray) -> None:
         """
         Write a frame to the video.
 
         Args:
             frame: Frame data to write.
         """
-        self.video_writer.write(frame)
-
+        if isinstance(frame, np.ndarray):
+            self.video_writer.write(frame)
+        else:
+            raise ValueError('Videowriter can only accept frames in numpy array for')
+        
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         """Exit the context manager."""
-        if self.video_writer is not None:
-            self.video_writer.release()
+        try:
+            if self.video_writer is not None:
+                self.video_writer.release()
+        except Exception as e:
+            print(f"Error releasing VideoWriter: {e}")

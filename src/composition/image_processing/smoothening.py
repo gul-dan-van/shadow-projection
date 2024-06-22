@@ -75,6 +75,11 @@ class BorderSmoothing:
         Returns:
             ndarray: Blended image with smoothing applied.
         """
+        if bg_image.shape[-1] != comp_image.shape[-1]:
+            min_channels = min(bg_image.shape[-1], comp_image.shape[-1])
+            bg_image = bg_image[:, :, :min_channels]
+            comp_image = comp_image[:, :, :min_channels]
+
         mask_near = cv2.dilate(mask, None, iterations=1)
         blurred_comp_near_mask = cv2.GaussianBlur(comp_image, (15, 15), self.smoothing_radius + 10)
         blurred_bg_near_mask = cv2.GaussianBlur(bg_image, (0, 0), self.smoothing_radius)

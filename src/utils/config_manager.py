@@ -72,6 +72,7 @@ class ConfigManager:
         for primary_dir in folders_to_create:
             if not exists(primary_dir):
                 makedirs(primary_dir)
+
             elif primary_dir != 'input':
                 rmtree(primary_dir)
                 makedirs(primary_dir)
@@ -120,15 +121,16 @@ class ConfigManager:
             env_var['model_list'] = env_var['model_list'].split(',')
             env_var['debug_mode'] = self.__parse_bool(env_var['debug_mode'])
             env_var = self.__create_directory(env_var)
-
+            
             # Validate configuration
             self.__validate_config(env_var)
 
             # Convert config to SimpleNamespace
-            self.config = SimpleNamespace(**env_var)
+            return SimpleNamespace(**env_var)
         
     def get_config(self) -> SimpleNamespace:
         self.config = self.generate_config()
+        print(self.config)
         return self.config
 
     def display_config(self) -> None:
@@ -154,4 +156,5 @@ class ConfigManager:
         }
 
         self.__validate_config(default_config)  # Validate the default configuration
+
         return SimpleNamespace(**default_config)

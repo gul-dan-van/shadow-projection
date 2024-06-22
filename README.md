@@ -65,23 +65,49 @@ After setting up and activating your environment, install the following dependen
    ```
    This command installs all the necessary Python packages listed in the `requirements.txt` file to ensure the application runs correctly.
 
+## 2. Testing the Application
+To develop and run the unit tests for the Co-Creation project, follow these steps:
 
-## 2. Deploying the Application
+1. Navigate to the `tests` folder in the project directory.
+2. Write unit tests using pytest to cover different scenarios and functionalities.
+3. Ensure each test is independent and follows the Arrange-Act-Assert (AAA) pattern.
+4. Document each test case following the PEP 8 format for better readability.
+5. Utilize parametrization to run tests with different inputs.
+6. Use fixtures for reusable setup and teardown operations.
+7. Validate the expected behavior of the code with meaningful assertions.
+8. Check the @README.md file for detailed guidelines on writing effective unit tests.
+
+For more comprehensive instructions on generating and testing the Co-Creation codebase, refer to the [Testing Documentation](./tests/TESTING.md) file in the project's `test` directory.
+
+
+## 3. Deploying the Application
 1. **Run the application**:
    ```bash
-   python main.py
+   python test.py
    ```
    This command starts the application, which allows you to select and place your favorite celebrities or characters into your personal pics and videos.
 
 	**NOTE**: By default, the application runs in production mode. In config,env, set `DEBUG_MODE` to `TRUE` to run the application in 	debug mode.
 
-2. **Running on Docker**:
+2. **Running on Docker - CPU Version**:
    ```bash
-   docker run -d -p 5000:5000 co-creation
+   docker build --rm -p 8000:8000 -f .docker/Dockerfile -t cocreation-cpu:latest .
    ```
-   This command starts the application, which allows you to select and place your favorite celebrities or characters into your personal pics and videos.
+   This command builds the Docker image for the CPU version, which can be installed without the requirement of Nvidia GPUs.
    
    ```bash
-   docker run --gpus all -d -p 5000:5000 co-creation
+   docker-compose -f .docker/docker-compose.yml up
    ```
- This command allows to the docker container to access the GPU and increase performance of the application .
+   This compose command starts the application using the CPU version.
+
+3. **Running on Docker - GPU Version**:
+   ```bash
+   docker build --rm -p 8000:8000 -f .docker/Dockerfile_gpu.dockerfile -t co-creation:latest .
+   ```
+   This command builds the Docker image for the GPU version, which requires CUDA based GPUs to work.
+   
+   ```bash
+   docker-compose -f .docker/docker-compose_gpu.yml up
+   ```
+   This compose command starts the application using the GPU version.
+

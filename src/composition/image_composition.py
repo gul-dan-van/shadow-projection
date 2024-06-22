@@ -3,10 +3,10 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from utils.writer import ImageWriter
-from composition.image_processing.image_blending import ImageBlending
-from composition.image_processing.smoothening import BorderSmoothing
-from composition.image_harmonization.harmonization import ImageHarmonization
+from src.utils.writer import ImageWriter
+from src.composition.image_processing.image_blending import ImageBlending
+from src.composition.image_processing.smoothening import BorderSmoothing
+from src.composition.image_harmonization.harmonization import ImageHarmonization
 
 
 
@@ -70,10 +70,11 @@ class ImageComposition:
             if model_type in self.image_composition_models:
                 print(f"Selected {model_type.capitalize()} Model...")
                 model_map[model_type] = self.image_composition_models[model_type](self.config)
+            else:
+                raise ValueError("Model type does not exist!!!....")
 
         return model_map
 
-    @handle_exceptions
     def process_composite(self, frame: np.ndarray, mask: np.ndarray, bg_image: np.ndarray) -> tuple:
         """
         Process image composition using specified models.
@@ -87,16 +88,21 @@ class ImageComposition:
             tuple[ndarray, ndarray]: Processed composite frame and mask.
 
         """
-        for model_type in self.model_list:
 
-            if model_type in ['border-smoothing']:
-                frame = self.model_map[model_type].infer(frame, mask, bg_image)
+        if not all(isinstance(arr, np.ndarray) for arr in [frame, mask, bg_image]):
+            raise ValueError("Please Enter data in correct formats: frame, mask, and bg_image must be numpy arrays")
+        
+        else:
+            for model_type in self.model_list:
 
-            else:
-                frame = self.model_map[model_type].infer(frame, mask)
+                if model_type in ['border-smoothing']:
+                    frame = self.model_map[model_type].infer(frame, mask, bg_image)
 
-            if self.debug_mode:
-                self.image_writer.write_image(frame, self.config.debug_path, f'{model_type}.jpg')
+                else:
+                    frame = self.model_map[model_type].infer(frame, mask)
+
+                if self.debug_mode:
+                    self.image_writer.write_image(frame, self.config.debug_path, f'{model_type}.jpg')
 
             return frame, mask
 
@@ -114,7 +120,7 @@ class ImageComposition:
         Returns:
             tuple[ndarray, ndarray]: Processed composite frame and mask.
         """
-        image_blender = self.image_composition_models['blending'](self.config)
+        image_blender = self.model_map['blending'](self.config)
         frame, mask = image_blender.infer(fg_image, bg_image, bbox)
 
         if self.debug_mode:

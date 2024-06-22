@@ -24,6 +24,10 @@ spec:
       labels:
         app: cocreation
     spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Accelerator"
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+        cloud.google.com/gke-accelerator-count: 1
       containers:
         - image: gcr.io/development-382019/github.com/homingos/co-creation-pipeline
           name: cocreation

@@ -2,11 +2,10 @@
 import argparse
 from time import sleep
 
-from utils.config_manager import ConfigManager
-from utils.reader import ImageReader, VideoReader
-from utils.writer import ImageWriter, VideoWriter
-
-from composition.image_composition import ImageComposition
+from src.utils.config_manager import ConfigManager
+from src.utils.reader import ImageReader, VideoReader
+from src.utils.writer import ImageWriter, VideoWriter
+from src.composition.image_composition import ImageComposition
 
 
 def main(args):
@@ -19,8 +18,8 @@ def main(args):
     Raises:
         ValueError: Explanation of when a ValueError is raised.
     """
-    config_manager = ConfigManager()
-    config = config_manager.get_config(args.env_path)
+    config_manager = ConfigManager(args.env_path)
+    config = config_manager.get_config()
     image_compositer =  ImageComposition(config)
     bbox = [579, 988, 1332, 3582]
 
@@ -79,5 +78,5 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env_path', type=str, default='config.env')
+    parser.add_argument('--env_path', type=str, default='envs/config.env')
     main(parser.parse_args())

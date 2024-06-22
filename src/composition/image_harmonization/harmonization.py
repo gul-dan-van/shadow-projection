@@ -9,9 +9,9 @@ import torch
 import torchvision.transforms.functional as tf
 import torchvision.transforms as transforms
 
-from composition.image_harmonization.network.pctnet.net import PCTNet 
-from composition.image_harmonization.network.white_box.harmonizer import Harmonizer
-from composition.utils.model_downloader import ModelDownloader
+from src.composition.image_harmonization.network.pctnet.net import PCTNet 
+from src.composition.image_harmonization.network.white_box.harmonizer import Harmonizer
+from src.composition.utils.model_downloader import ModelDownloader
 
 
 class ImageHarmonization:
@@ -19,7 +19,7 @@ class ImageHarmonization:
     Class to handle image harmonization using different models like PCTNet and Harmonizer.
     """
 
-    MODEL_PATH = "./composition/image_harmonization/models"
+    MODEL_PATH = "./src/composition/image_harmonization/models"
 
     def __init__(self, config: SimpleNamespace) -> None:
         """

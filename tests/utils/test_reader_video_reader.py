@@ -3,12 +3,12 @@ import cv2
 import numpy as np
 from time import sleep
 from unittest.mock import MagicMock
-from utils.reader import VideoReader
+from src.utils.reader import VideoReader
 
 
 class TestVideoReader:
     def setup_method(self):
-        self.video_path = "input/video/test_video.mp4"
+        self.video_path = "input/video/input_video.mp4"
         self.video_reader = VideoReader(self.video_path)
 
     def test_read_frames_positive(self):

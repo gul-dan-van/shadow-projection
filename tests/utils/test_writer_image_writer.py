@@ -1,6 +1,6 @@
 import cv2
 import pytest
-from utils.writer import ImageWriter
+from src.utils.writer import ImageWriter
 
 IMAGE_DATA=cv2.imread('input/composite/composite_frame.jpg')
 

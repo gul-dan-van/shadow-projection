@@ -168,3 +168,4 @@ input
 *.avi
 *.pth
 *.env
+.DS_Store

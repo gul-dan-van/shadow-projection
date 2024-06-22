@@ -1,6 +1,7 @@
 import pytest
+from os.path import join
 from app import MyApp
-from utils.config_manager import ConfigManager
+from src.utils.config_manager import ConfigManager
 
 from tests.helper import *
 
@@ -12,6 +13,11 @@ composite_input_data = {
 }
 
 ENV_PATH='envs/config.env'
+INDEX_PATH='/cocreation/'
+API_URL_PATHS={
+    'process_composite_frames': join(INDEX_PATH, 'process_composite')
+}
+
 
 @pytest.fixture(scope='class')
 def client():
@@ -21,7 +27,7 @@ def client():
     Yields:
         FlaskClient: A test client for the Flask application.
     """
-    config_manager = ConfigManager(env_path=ENV_PATH)
+    config_manager = ConfigManager(default_config_flag=True)
     config = config_manager.get_config()
     my_app = MyApp(config)
     with my_app.app.test_client() as client:
@@ -40,7 +46,7 @@ class TestMyApp:
         Args:
             client (FlaskClient): The test client for the Flask application.
         """
-        response = client.get('/')
+        response = client.get(INDEX_PATH)
         assert response.status_code == 200
         assert b'index' in response.data
 
@@ -52,7 +58,7 @@ class TestMyApp:
             client (FlaskClient): The test client for the Flask application.
         """
         data = prepare_multipart_data(composite_input_data)
-        response = client.post('/process_composite', content_type='multipart/form-data', data=data)
+        response = client.post(API_URL_PATHS['process_composite_frames'], content_type='multipart/form-data', data=data)
         assert response.status_code == 200
         assert b'Result' in response.data
 
@@ -79,7 +85,7 @@ class TestMyApp:
             client (FlaskClient): The test client for the Flask application.
         """
         data = {name: (b'', f"{name}.jpg") for name in composite_input_data.keys()}
-        response = client.post('/process_composite', content_type='multipart/form-data', data=data)
+        response = client.post(API_URL_PATHS['process_composite_frames'], content_type='multipart/form-data', data=data)
         assert response.status_code != 200
         assert b'Error' in response.data
 
@@ -91,6 +97,29 @@ class TestMyApp:
             client (FlaskClient): The test client for the Flask application.
         """
         data = prepare_multipart_data(composite_input_data)
-        response = client.post('/process_composite', content_type='multipart/form-data', data=data)
+        response = client.post(API_URL_PATHS['process_composite_frames'], content_type='multipart/form-data', data=data)
         assert response.status_code == 200
         assert b'Result' in response.data
+
+    def test_health_check_route(self, client):
+        """
+        Test the health check route for a successful response.
+        
+        Args:
+            client (FlaskClient): The test client for the Flask application.
+        """
+        response = client.get('/cocreation/health')
+        assert response.status_code == 200
+        assert response.data == b'OK'
+
+    def test_health_check_route_negative(self, client):
+        """
+        Test the health check route for a negative response.
+        
+        Args:
+            client (FlaskClient): The test client for the Flask application.
+        """
+        with pytest.raises(Exception):
+            response = client.get('/cocreation/health')
+            assert response.status_code != 200
+            assert response.data != b'OK'
