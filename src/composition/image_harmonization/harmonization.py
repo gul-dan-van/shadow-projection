@@ -9,9 +9,13 @@ import torch
 import torchvision.transforms.functional as tf
 import torchvision.transforms as transforms
 
-from src.composition.image_harmonization.network.pctnet.net import PCTNet 
+from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.white_box.harmonizer import Harmonizer
+from src.composition.image_harmonization.network.palette.net.network import Palette
+from src.composition.image_harmonization.network.palette.core.util import postprocess
 from src.composition.utils.model_downloader import ModelDownloader
+
+PALETTE_MODEL_CONFIG = {'init_type': 'kaiming', 'module_name': 'guided_diffusion', 'unet': {'in_channel': 6, 'out_channel': 3, 'inner_channel': 64, 'channel_mults': [1, 2, 4, 8], 'attn_res': [8, 16], 'num_head_channels': 32, 'res_blocks': 2, 'dropout': 0.2, 'image_size': 224}, 'beta_schedule': {'train': {'schedule': 'cosine', 'n_timestep': 2000}, 'test': {'schedule': 'cosine', 'n_timestep': 2000}}}
 
 
 class ImageHarmonization:
@@ -28,47 +32,54 @@ class ImageHarmonization:
         Args:
             config (SimpleNamespace): Configuration object with settings.
         """
-        # SETTING THE DEVICE 
+        # SETTING THE DEVICE
         self.config = config
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu')
         torch.backends.cudnn.enabled = True if torch.backends.cudnn.is_available() else False
-        warnings.filterwarnings("ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
+        warnings.filterwarnings(
+            "ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
 
         # SETTING THE MODELS
         self.image_harmonization_models = {
             'PCTNet': PCTNet,
-            'Harmonizer': Harmonizer
+            'Harmonizer': Harmonizer,
+            'Palette': Palette
         }
-
-        # SETTING THE TRANSFORMERS
-        self.transformer = transforms.Compose([
-            transforms.ToTensor(),
-        ])
 
         # DOWNLOADING THE MODELS
         if not exists(self.MODEL_PATH):
             self.model_downloader = ModelDownloader(config, self.MODEL_PATH)
             self.model_downloader.download_models()
             weights_path = self.model_downloader.model_path
+
         else:
-            weights_path = f'{self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
+            weights_path = f'{
+                self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
 
         # LOADING THE MODELS
         # if not exists(weights_path):
         #     raise ValueError('Image Harmonizer Model Path does not exist!!')
 
         if config.model_type in self.image_harmonization_models.keys():
-            self.model = self.image_harmonization_models[config.model_type]()
+            if config.model_type == 'Palette':
+                self.model = self.image_harmonization_models[config.model_type](**PALETTE_MODEL_CONFIG)
+                self.model.set_new_noise_schedule(phase='test')
+
+            else:
+                self.model = self.image_harmonization_models[config.model_type]()
 
         else:
-            raise ValueError("Image Harmonization Model Type does not exist!!...")
+            raise ValueError(
+                "Image Harmonization Model Type does not exist!!...")
 
         self.model.load_state_dict(self.load_model(weights_path), strict=True)
         self.model.to(self.device)
         self.model.eval()
-        
+
         if self.config.model_type == 'Harmonizer':
             self.ema_arguments = None
+
         print("Initializing Image Harmonization Model....")
 
     def load_model(self, model_path: str):
@@ -98,10 +109,10 @@ class ImageHarmonization:
         # Convert numpy arrays to PIL images
         comp = cv2.cvtColor(composite_image, cv2.COLOR_BGR2RGB)
         comp = Image.fromarray(comp.astype(np.uint8))
-        
+
         comp = tf.to_tensor(composite_image)[None, ...].to(self.device)
         mask = tf.to_tensor(composite_mask)[None, ...].to(self.device)
-        
+
         # Harmonization
         with torch.no_grad():
             arguments = self.model.predict_arguments(comp, mask)
@@ -110,11 +121,14 @@ class ImageHarmonization:
                 self.ema_arguments = list(arguments)
             else:
                 for i, (ema_argument, argument) in enumerate(zip(self.ema_arguments, arguments)):
-                    self.ema_arguments[i] = ema * ema_argument + (1 - ema) * argument
+                    self.ema_arguments[i] = ema * \
+                        ema_argument + (1 - ema) * argument
 
-            harmonized = self.model.restore_image(comp, mask, self.ema_arguments)[-1]
+            harmonized = self.model.restore_image(
+                comp, mask, self.ema_arguments)[-1]
 
-            harmonized = np.transpose(harmonized[0].cpu().numpy(), (1, 2, 0)) * 255
+            harmonized = np.transpose(
+                harmonized[0].cpu().numpy(), (1, 2, 0)) * 255
             harmonized = harmonized.astype('uint8')
 
         harmonized = np.transpose(harmonized[0].cpu().numpy(), (1, 2, 0)) * 255
@@ -138,11 +152,15 @@ class ImageHarmonization:
         img_lr = cv2.resize(img, (256, 256))
         mask_lr = cv2.resize(composite_mask, (256, 256))
 
-        #to tensor
-        img = self.transformer(img).float().to(self.device)
-        mask = self.transformer(mask).float().to(self.device)
-        img_lr = self.transformer(img_lr).float().to(self.device)
-        mask_lr = self.transformer(mask_lr).float().to(self.device)
+        transformer = transforms.Compose([
+            transforms.ToTensor(),
+        ])
+
+        # to tensor
+        img = transformer(img).float().to(self.device)
+        mask = transformer(mask).float().to(self.device)
+        img_lr = transformer(img_lr).float().to(self.device)
+        mask_lr = transformer(mask_lr).float().to(self.device)
 
         with torch.no_grad():
             outputs = self.model(img_lr, img, mask_lr, mask)
@@ -150,10 +168,48 @@ class ImageHarmonization:
         if len(outputs.shape) == 4:
             outputs = outputs.squeeze(0)
 
-        outputs = (torch.clamp(255.0 * outputs.permute(1, 2, 0), 0, 255)).detach().cpu().numpy()
+        outputs = (torch.clamp(255.0 * outputs.permute(1, 2, 0),
+                   0, 255)).detach().cpu().numpy()
         outputs = cv2.cvtColor(outputs, cv2.COLOR_RGB2BGR)
 
         return outputs
+
+    def get_pallete_harmonized_image(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
+        """
+        Harmonize an image using the Palette Diffusion model.
+
+        Args:
+            composite_frame (np.ndarray): The composite frame array.
+            composite_mask (np.ndarray): The mask array for the composite frame.
+
+        Returns:
+            np.ndarray: The harmonized image array.
+        """
+        # PRE PROCESSING STEPS
+        tfs_composite = transforms.Compose([
+                transforms.Resize((256, 256)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5,0.5, 0.5])
+            ])
+
+        transformed_frame = tfs_composite(composite_frame)
+
+        # MODEL INFERENCE
+        with torch.no_grad():
+            outputs, _ = self.model.restoration(transformed_frame, transformed_frame, y_0=transformed_frame, mask=composite_mask, sample_num=0)
+
+        # POST PROCESSING STEPS
+        edited_image = postprocess(outputs.cpu())[0]
+        og_comp_image = postprocess(composite_frame.cpu())[0]
+        
+        # GENERATING HIGH RESOLUTION OUTPUT
+        og_comp_image = og_comp_image.resize(composite_frame.size)
+        edited_image = edited_image.resize(composite_frame.size)
+        updated_nparray = np.array(composite_frame).astype(np.float32)+np.array(edited_image).astype(np.float32)-np.array(og_comp_image).astype(np.float32)
+        updated_nparray = np.where(updated_nparray>255,255,updated_nparray)
+        harmonized_image = np.where(updated_nparray<=0,0,updated_nparray)
+
+        return harmonized_image
 
     def infer(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         """
@@ -168,7 +224,8 @@ class ImageHarmonization:
         """
         image_harmonization_methods = {
             'PCTNet': self.get_pct_harmonized_image,
-            'Harmonizer': self.get_whitebox_harmonized_image
+            'Harmonizer': self.get_whitebox_harmonized_image,
+            'Palette': self.get_pallete_harmonized_image
         }
         print("Image Harmonization Complete....")
         return image_harmonization_methods[self.config.model_type](composite_frame, composite_mask)
