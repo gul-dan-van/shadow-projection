@@ -174,7 +174,7 @@ class ImageHarmonization:
 
         return outputs
 
-    def get_pallete_harmonized_image(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
+    def get_palette_harmonized_image(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         """
         Harmonize an image using the Palette Diffusion model.
 
@@ -185,29 +185,38 @@ class ImageHarmonization:
         Returns:
             np.ndarray: The harmonized image array.
         """
+        composite_frame = composite_frame[:, :, :3]
         # PRE PROCESSING STEPS
         tfs_composite = transforms.Compose([
+                transforms.ToPILImage(),
                 transforms.Resize((256, 256)),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5,0.5, 0.5])
             ])
 
-        transformed_frame = tfs_composite(composite_frame)
+        tfs_mask = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize((256, 256)),
+            transforms.ToTensor(),
+        ])
+
+        transformed_frame = tfs_composite(composite_frame).unsqueeze(0).to(self.device)
+        transformed_mask = tfs_mask(composite_mask).to(self.device)
 
         # MODEL INFERENCE
         with torch.no_grad():
-            outputs, _ = self.model.restoration(transformed_frame, transformed_frame, y_0=transformed_frame, mask=composite_mask, sample_num=0)
+            outputs, _ = self.model.restoration(transformed_frame, transformed_frame, y_0=transformed_frame, mask=transformed_mask, sample_num=1)
 
         # POST PROCESSING STEPS
-        edited_image = postprocess(outputs.cpu())[0]
-        og_comp_image = postprocess(composite_frame.cpu())[0]
+        edited_image = Image.fromarray(postprocess(outputs.cpu())[0])
+        og_comp_image = Image.fromarray(postprocess(transformed_frame.cpu())[0])
         
         # GENERATING HIGH RESOLUTION OUTPUT
-        og_comp_image = og_comp_image.resize(composite_frame.size)
-        edited_image = edited_image.resize(composite_frame.size)
-        updated_nparray = np.array(composite_frame).astype(np.float32)+np.array(edited_image).astype(np.float32)-np.array(og_comp_image).astype(np.float32)
-        updated_nparray = np.where(updated_nparray>255,255,updated_nparray)
-        harmonized_image = np.where(updated_nparray<=0,0,updated_nparray)
+        og_comp_image = og_comp_image.resize(Image.fromarray(composite_frame).size)
+        edited_image = edited_image.resize(Image.fromarray(composite_frame).size)
+        updated_nparray = composite_frame.astype(np.float32) + np.array(edited_image).astype(np.float32) - np.array(og_comp_image).astype(np.float32)
+        updated_nparray = np.where(updated_nparray > 255, 255, updated_nparray)
+        harmonized_image = np.where(updated_nparray <= 0, 0, updated_nparray)
 
         return harmonized_image
 
@@ -225,7 +234,7 @@ class ImageHarmonization:
         image_harmonization_methods = {
             'PCTNet': self.get_pct_harmonized_image,
             'Harmonizer': self.get_whitebox_harmonized_image,
-            'Palette': self.get_pallete_harmonized_image
+            'Palette': self.get_palette_harmonized_image
         }
         print("Image Harmonization Complete....")
         return image_harmonization_methods[self.config.model_type](composite_frame, composite_mask)
