@@ -54,8 +54,7 @@ class ImageHarmonization:
             weights_path = self.model_downloader.model_path
 
         else:
-            weights_path = f'{
-                self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
+            weights_path = f'{self.MODEL_PATH}/{self.config.model_type.lower()}.pth'
 
         # LOADING THE MODELS
         # if not exists(weights_path):
