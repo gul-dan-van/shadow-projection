@@ -5,3 +5,4 @@ opencv-python
 pytorch_msssim 
 flask 
 python-dotenv
+tqdm
