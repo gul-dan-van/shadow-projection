@@ -21,7 +21,7 @@ class ConfigManager:
         'composite': ['composite_frame_path', 'composite_mask_path', 'background_image_path']
     }
 
-    MODEL_TYPE = 'Palette'
+    MODEL_TYPE = 'PCTNet'
 
     def __init__(self, env_path: str = 'envs/config.env', default_config_flag: bool = False) -> None:
         self.default_config_flag = default_config_flag
@@ -148,7 +148,7 @@ class ConfigManager:
         default_config = {
             'input_type': 'composite',
             'debug_mode': False,
-            'model_type': 'Palette',
+            'model_type': 'PCTNet',
             'model_list': ['harmonization'],
             'composite_frame_path': 'path_to_composite_frame_path',
             'composite_mask_path': 'path_to_composite_mask_path',
