@@ -102,7 +102,7 @@ For more comprehensive instructions on generating and testing the Co-Creation co
 
 3. **Running on Docker - GPU Version**:
    ```bash
-   docker build --rm -p 8000:8000 -f .docker/Dockerfile_gpu.dockerfile -t co-creation:latest .
+   docker build --rm -p 8000:8000 --gpus all -f .docker/Dockerfile_gpu.dockerfile -t co-creation:latest .
    ```
    This command builds the Docker image for the GPU version, which requires CUDA based GPUs to work.
    
