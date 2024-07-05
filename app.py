@@ -35,11 +35,11 @@ def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
         response = requests.put(signed_url, data=image_bytes, headers=headers)
         response.raise_for_status()  # Raise an exception for bad status codes
         print("Image uploaded successfully.")
-        return True
+        return True, "Image uploaded successfully."
 
     except requests.exceptions.RequestException as e:
         print(f"Error uploading image: {e}")
-        return False
+        return False, f"Error uploading image: {e}"
 
 class MyApp:
     def __init__(self, config: SimpleNamespace) -> None:
@@ -85,16 +85,20 @@ class MyApp:
                 composite_frame, composite_mask = simple_blend(foreground_image, background_image)
             
             except ValueError as e:
-                return "400"
+                return ("400", str(e))
 
             final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
             print(f"Time taken to process image: {time() -  start_time:2f}")
             
             output_url = url_dict['signed_url']
             send_time_start = time()
-            send_image_to_gcp(final_image, output_url)
+            gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
             print(f"Time taken to send image: {time() -  send_time_start:2f}")
-            return "200"
+
+            if gcp_sent_status:
+                return ("200", message)
+            else:
+                return ("500", message)
 
         except Exception as e:
             return ("500", str(e))
