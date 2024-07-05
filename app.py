@@ -95,10 +95,12 @@ class MyApp:
             gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
             print(f"Time taken to send image: {time() -  send_time_start:2f}")
 
-            if gcp_sent_status:
-                return ("200", message)
-            else:
-                return ("500", message)
+            # if gcp_sent_status:
+            #     return ("200", message)
+            # else:
+            #     return ("500", message)
+
+            return "200"
 
         except Exception as e:
             return ("500", str(e))
