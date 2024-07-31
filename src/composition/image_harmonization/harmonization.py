@@ -15,7 +15,7 @@ from src.composition.image_harmonization.network.palette.net.network import Pale
 from src.composition.image_harmonization.network.palette.core.util import postprocess
 from src.composition.utils.model_downloader import ModelDownloader
 
-PALETTE_MODEL_CONFIG = {'init_type': 'kaiming', 'module_name': 'guided_diffusion', 'unet': {'in_channel': 6, 'out_channel': 3, 'inner_channel': 64, 'channel_mults': [1, 2, 4, 8], 'attn_res': [8, 16], 'num_head_channels': 32, 'res_blocks': 2, 'dropout': 0.2, 'image_size': 224}, 'beta_schedule': {'train': {'schedule': 'cosine', 'n_timestep': 2000}, 'test': {'schedule': 'cosine', 'n_timestep': 2000}}}
+PALETTE_MODEL_CONFIG = {'init_type': 'kaiming', 'module_name': 'guided_diffusion', 'unet': {'in_channel': 6, 'out_channel': 3, 'inner_channel': 64, 'channel_mults': [1, 2, 4, 8], 'attn_res': [16], 'num_head_channels': 32, 'res_blocks': 2, 'dropout': 0.2, 'image_size': 224}, 'beta_schedule': {'train': {'schedule': 'cosine', 'n_timestep': 2000}, 'test': {'schedule': 'cosine', 'n_timestep': 1000}}}
 
 
 class ImageHarmonization:
@@ -63,8 +63,6 @@ class ImageHarmonization:
         if config.model_type in self.image_harmonization_models.keys():
             if config.model_type == 'Palette':
                 self.model = self.image_harmonization_models[config.model_type](**PALETTE_MODEL_CONFIG)
-                self.model.set_new_noise_schedule(phase='test')
-
             else:
                 self.model = self.image_harmonization_models[config.model_type]()
 
@@ -72,7 +70,9 @@ class ImageHarmonization:
             raise ValueError(
                 "Image Harmonization Model Type does not exist!!...")
 
-        self.model.load_state_dict(self.load_model(weights_path), strict=True)
+        self.model.load_state_dict(self.load_model(weights_path), strict=False)
+        if config.model_type == 'Palette':
+            self.model.set_new_noise_schedule(phase='test')
         self.model.to(self.device)
         self.model.eval()
 
