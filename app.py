@@ -4,6 +4,7 @@ import base64
 from types import SimpleNamespace
 from typing import Tuple
 from time import time
+import threading
 
 import cv2
 import numpy as np
@@ -70,8 +71,7 @@ class MyApp:
         return render_template("index.html")
     
 
-    def image_process(self) -> None:
-
+    def image_process(self) -> str:
         try:
             start_time = time()
 
@@ -87,20 +87,22 @@ class MyApp:
             except ValueError as e:
                 return ("400", str(e))
 
-            final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
-            print(f"Time taken to process image: {time() -  start_time:2f}")
-            
-            output_url = url_dict['signed_url']
-            send_time_start = time()
-            gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
-            print(f"Time taken to send image: {time() -  send_time_start:2f}")
+            # Send "200" response immediately after blending
+            response = "200"
 
-            # if gcp_sent_status:
-            #     return ("200", message)
-            # else:
-            #     return ("500", message)
+            def async_process():
+                final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
+                print(f"Time taken to process image: {time() - start_time:2f}")
+                
+                output_url = url_dict['signed_url']
+                send_time_start = time()
+                gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
+                print(f"Time taken to send image: {time() - send_time_start:2f}")
 
-            return "200"
+            # Run the async process in a separate thread
+            threading.Thread(target=async_process).start()
+
+            return response
 
         except Exception as e:
             return ("500", str(e))
