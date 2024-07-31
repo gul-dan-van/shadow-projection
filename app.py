@@ -14,6 +14,7 @@ from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader
 from src.composition.image_composition import ImageComposition
 
+
 def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     fg_mask = np.where(fg_image[:, :, 3] > 128, 255, 0)
     blended_image = np.copy(bg_image)
