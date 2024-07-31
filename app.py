@@ -30,7 +30,7 @@ def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
         headers = {
             'Content-Type': 'image/png'
         }
-
+        print(f"Signed URL Provided: {signed_url}")
         # Perform PUT request to upload the file
         response = requests.put(signed_url, data=image_bytes, headers=headers)
         response.raise_for_status()  # Raise an exception for bad status codes
