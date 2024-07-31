@@ -149,7 +149,7 @@ class ConfigManager:
             'input_type': 'composite',
             'debug_mode': False,
             'model_type': 'Palette',
-            'model_list': ['harmonization'],
+            'model_list': ['harmonization', 'border-smoothing'],
             'composite_frame_path': 'path_to_composite_frame_path',
             'composite_mask_path': 'path_to_composite_mask_path',
             'background_image_path': 'path_to_background_image_path',
