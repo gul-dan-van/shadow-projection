@@ -4,6 +4,7 @@ import base64
 from types import SimpleNamespace
 from typing import Tuple
 from time import time
+import threading
 
 import cv2
 import numpy as np
@@ -12,6 +13,7 @@ from flask import Flask, request, render_template
 from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader
 from src.composition.image_composition import ImageComposition
+
 
 def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     fg_mask = np.where(fg_image[:, :, 3] > 128, 255, 0)
@@ -35,11 +37,11 @@ def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
         response = requests.put(signed_url, data=image_bytes, headers=headers)
         response.raise_for_status()  # Raise an exception for bad status codes
         print("Image uploaded successfully.")
-        return True
+        return True, "Image uploaded successfully."
 
     except requests.exceptions.RequestException as e:
         print(f"Error uploading image: {e}")
-        return False
+        return False, f"Error uploading image: {e}"
 
 class MyApp:
     def __init__(self, config: SimpleNamespace) -> None:
@@ -70,8 +72,7 @@ class MyApp:
         return render_template("index.html")
     
 
-    def image_process(self) -> None:
-
+    def image_process(self) -> str:
         try:
             start_time = time()
 
@@ -85,16 +86,24 @@ class MyApp:
                 composite_frame, composite_mask = simple_blend(foreground_image, background_image)
             
             except ValueError as e:
-                return "400"
+                return ("400", str(e))
 
-            final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
-            print(f"Time taken to process image: {time() -  start_time:2f}")
-            
-            output_url = url_dict['signed_url']
-            send_time_start = time()
-            send_image_to_gcp(final_image, output_url)
-            print(f"Time taken to send image: {time() -  send_time_start:2f}")
-            return "200"
+            # Send "200" response immediately after blending
+            response = "200"
+
+            def async_process():
+                final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
+                print(f"Time taken to process image: {time() - start_time:2f}")
+                
+                output_url = url_dict['signed_url']
+                send_time_start = time()
+                gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
+                print(f"Time taken to send image: {time() - send_time_start:2f}")
+
+            # Run the async process in a separate thread
+            threading.Thread(target=async_process).start()
+
+            return response
 
         except Exception as e:
             return ("500", str(e))

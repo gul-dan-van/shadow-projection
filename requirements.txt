@@ -6,3 +6,4 @@ pytorch_msssim
 flask 
 python-dotenv
 tqdm
+requests

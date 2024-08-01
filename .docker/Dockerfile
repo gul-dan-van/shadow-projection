@@ -1,5 +1,5 @@
 # Use Nvidia CUDA base image optimized for size and version
-FROM nvidia/cuda:11.6.1-cudnn8-runtime-ubuntu20.04
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel
 
 # Configure the time zone and install system dependencies in a single layer to reduce image size
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get update && apt-get install -y --no-install-recommends \
-    wget\
+    wget \
     python3-pip \
     python3.10 \
     ffmpeg \
@@ -27,9 +27,11 @@ WORKDIR /app
 
 # Install Python dependencies in a single layer, ensure no cache is stored to minimize image size
 COPY requirements.txt /app/
-RUN pip3 install --no-cache-dir torch==1.12.0+cu116 torchvision==0.13.0+cu116 torchaudio==0.12.0+cu116 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip3 install --no-cache-dir -r /app/requirements.txt
+RUN pip3 install --no-cache-dir torch==2.3.1 torchvision -f https://download.pytorch.org/whl/cu121/torch_stable.html && \
+    pip3 install --no-cache-dir -r /app/requirements.txt
+
 # Copy the rest of the application code to the working directory
 COPY . .
+
 # Set the default command to run when the container starts
 ENTRYPOINT ["python", "app.py"]

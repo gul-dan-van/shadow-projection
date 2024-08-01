@@ -54,7 +54,7 @@ class ImageReader:
     def __read_image_from_url(self, image_key: str, grayscale: bool) -> np.ndarray:
         """Read an image from a GET request containing JSON data."""
         image_url = self.source.json[image_key]
-        image_response = requests.get(image_url)
+        image_response = requests.get(image_url.split('?')[0])
         
         if image_response.status_code != 200:
             raise ValueError(f"Failed to fetch image from URL: {image_url}")

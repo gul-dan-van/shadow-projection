@@ -4,7 +4,7 @@ metadata:
   name: cocreation-be-config
   namespace: zingcam
 spec:
-  timeoutSec: 300
+  timeoutSec: 600
   healthCheck:
     checkIntervalSec: 15
     timeoutSec: 15
