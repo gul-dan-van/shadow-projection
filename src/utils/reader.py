@@ -51,13 +51,11 @@ class ImageReader:
         else:
             return cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
     
-    def __read_image_from_url(self, image_key: str, grayscale: bool) -> np.ndarray:
+    def __read_image_from_url(self, url_path: str, grayscale: bool) -> np.ndarray:
         """Read an image from a GET request containing JSON data."""
-        image_url = self.source.json[image_key]
-        image_response = requests.get(image_url.split('?')[0])
-        
+        image_response = requests.get(url_path.split('?')[0])
         if image_response.status_code != 200:
-            raise ValueError(f"Failed to fetch image from URL: {image_url}")
+            raise ValueError(f"Failed to fetch image from URL: {url_path}")
         
         image_bytes = image_response.content
         file_bytes = np.asarray(bytearray(image_bytes), dtype=np.uint8)
@@ -77,8 +75,8 @@ class ImageReader:
         self.frame = self.__read_image_from_request(file_name, grayscale)
         return self.frame
 
-    def get_image_from_url(self, image_key: str, grayscale: bool = False) -> np.ndarray:
-        self.frame = self.__read_image_from_url(image_key, grayscale)
+    def get_image_from_url(self, url_path: str, grayscale: bool = False) -> np.ndarray:
+        self.frame = self.__read_image_from_url(url_path, grayscale)
         return self.frame
 
     def get_image_properties(self) -> Dict[str, int]:
@@ -119,6 +117,7 @@ class VideoReader:
                 if not self.q.full():
                     ret, frame = self.stream.read()
                     if not ret:
+                        self.q.put((ret, frame))
                         break
                     self.q.put((ret, frame))
                 else:
