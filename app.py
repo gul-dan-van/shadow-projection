@@ -22,7 +22,7 @@ def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray
     return blended_image.astype(np.uint8), fg_mask.astype(np.uint8)
 
 
-def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
+def send_image_to_gcp(image: np.ndarray, signed_url: str) -> Tuple[str, str]:
     """ Uploads an image from a NumPy array to GCS using a pre-signed URL. """
     try:
         # Encode image array to bytes
@@ -37,11 +37,29 @@ def send_image_to_gcp(image: np.ndarray, signed_url: str) -> bool:
         response = requests.put(signed_url, data=image_bytes, headers=headers)
         response.raise_for_status()  # Raise an exception for bad status codes
         print("Image uploaded successfully.")
-        return True, "Image uploaded successfully."
+        return response.status_code, "Image uploaded successfully."
 
     except requests.exceptions.RequestException as e:
         print(f"Error uploading image: {e}")
-        return False, f"Error uploading image: {e}"
+        return response.status_code, f"Error uploading image: {e}"
+
+def send_process_confirmation(process_id: str) -> Tuple[str, str]:
+    # Set environment variable for the environment (e.g., "prod" or "dev")
+    env = os.getenv("APP_ENV", "prod")
+
+    try:
+        # Construct the URL based on the environment
+        url = f"https://zingcam.{env}.flamapp.com/engagment-svc/api/v1/engagments/processed/:{process_id}"
+
+        data = {
+            "status": "processed"
+        }
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        return response.status_code, "processed message sent successfully."
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return response.status_code, f"Error sending processed message: {e}"
 
 class MyApp:
     def __init__(self, config: SimpleNamespace) -> None:
@@ -80,10 +98,13 @@ class MyApp:
             image_reader = ImageReader(request)
         
             try:
-                url_dict = request.json
-                background_image = image_reader.get_image_from_url('url_id1')
-                foreground_image = image_reader.get_image_from_url('url_id2')
-                composite_frame, composite_mask = simple_blend(foreground_image, background_image)
+                url_dict = dict(request.json.items())
+                input_urls = url_dict['inputs']
+                output_urls = url_dict['outputs']
+                process_id = url_dict['process_id']
+                background_image = image_reader.get_image_from_url(input_urls[0])
+                foreground_image = image_reader.get_image_from_url(input_urls[1])
+                # composite_frame, composite_mask = simple_blend(foreground_image, background_image)
             
             except ValueError as e:
                 return ("400", str(e))
@@ -91,17 +112,21 @@ class MyApp:
             # Send "200" response immediately after blending
             response = "200"
 
-            def async_process():
-                final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
-                print(f"Time taken to process image: {time() - start_time:2f}")
-                
-                output_url = url_dict['signed_url']
-                send_time_start = time()
-                gcp_sent_status, message = send_image_to_gcp(final_image, output_url)
-                print(f"Time taken to send image: {time() - send_time_start:2f}")
+            # final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
+            print(f"Time taken to process image: {time() - start_time:2f}")
 
-            # Run the async process in a separate thread
-            threading.Thread(target=async_process).start()
+            send_time_start = time()
+            
+            gcp_sent_status_code, message = send_image_to_gcp(background_image, output_urls[0])
+            print(f"Time taken to send image: {time() - send_time_start:2f}")
+
+            if str(gcp_sent_status_code) != '200':
+                raise RuntimeError(message)
+
+            processed_message_status_code, message = send_process_confirmation(process_id)
+
+            if str(processed_message_status_code) != '200':
+                raise RuntimeError(message)
 
             return response
 
