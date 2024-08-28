@@ -104,7 +104,7 @@ class MyApp:
                 process_id = url_dict['process_id']
                 background_image = image_reader.get_image_from_url(input_urls[0])
                 foreground_image = image_reader.get_image_from_url(input_urls[1])
-                # composite_frame, composite_mask = simple_blend(foreground_image, background_image)
+                composite_frame, composite_mask = simple_blend(foreground_image, background_image)
             
             except ValueError as e:
                 return ("400", str(e))
@@ -112,12 +112,12 @@ class MyApp:
             # Send "200" response immediately after blending
             response = "200"
 
-            # final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
+            final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
             print(f"Time taken to process image: {time() - start_time:2f}")
 
             send_time_start = time()
             
-            gcp_sent_status_code, message = send_image_to_gcp(background_image, output_urls[0])
+            gcp_sent_status_code, message = send_image_to_gcp(final_image, output_urls[0])
             print(f"Time taken to send image: {time() - send_time_start:2f}")
 
             if str(gcp_sent_status_code) != '200':
