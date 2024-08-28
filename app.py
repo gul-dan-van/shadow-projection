@@ -4,7 +4,6 @@ import base64
 from types import SimpleNamespace
 from typing import Tuple
 from time import time
-import threading
 
 import cv2
 import numpy as np
@@ -45,11 +44,11 @@ def send_image_to_gcp(image: np.ndarray, signed_url: str) -> Tuple[str, str]:
 
 def send_process_confirmation(process_id: str) -> Tuple[str, str]:
     # Set environment variable for the environment (e.g., "prod" or "dev")
-    env = os.getenv("APP_ENV", "prod")
+    env = os.getenv("APP_ENV", "dev")
 
     try:
         # Construct the URL based on the environment
-        url = f"https://zingcam.{env}.flamapp.com/engagment-svc/api/v1/engagments/processed/:{process_id}"
+        url = f"https://zingcam.{env}.flamapp.com/engagement-svc/api/v1/engagements/processed/{process_id}"
 
         data = {
             "status": "processed"
