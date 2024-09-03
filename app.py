@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 import base64
 from types import SimpleNamespace
 from typing import Tuple
@@ -7,7 +8,7 @@ from time import time
 
 import cv2
 import numpy as np
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 
 from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader
@@ -77,6 +78,7 @@ class MyApp:
         self.app.add_url_rule("/cocreation/", view_func=self.index)
         self.app.add_url_rule("/cocreation/process_image",view_func=self.image_process, methods=["POST"])
         self.app.add_url_rule("/cocreation/process_composite",view_func=self.composite_process, methods=["POST"])
+        self.app.add_url_rule("/cocreation/info", view_func=self.get_info_data, methods=["GET"])
         self.app.add_url_rule("/cocreation/health", view_func=self.health_check, methods=["GET"])
 
     def index(self):
@@ -168,6 +170,31 @@ class MyApp:
                 render_template("error.html", error=f"Internal server error: {e}"),
                 500,
             )
+
+    def get_info_data(self):
+        """
+        Return application information stored in a separate JSON file.
+
+        Returns:
+            JSON response: JSON data containing application information.
+        """
+        try:
+            # Path to the JSON file containing the info data
+            json_file_path = os.path.join('./', 'cocreation.json')
+
+            # Open and read the JSON file
+            with open(json_file_path, 'r') as json_file:
+                info_data = json.load(json_file)
+
+            # Return the JSON response
+            return jsonify(info_data), 200
+
+        except FileNotFoundError:
+            return jsonify({"error": "Info data file not found."}), 404
+        except json.JSONDecodeError:
+            return jsonify({"error": "Error decoding JSON data."}), 500
+        except Exception as e:
+            return jsonify({"error": f"Internal server error: {e}"}), 500
 
     def health_check(self):
         """
