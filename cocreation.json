@@ -1,0 +1,54 @@
+
+{
+"project": "cocreation",
+"models_available": ["None", "SwiftLite Blending", "Deep Blending"],
+"output_type": "image",
+
+"model_configs":[
+    {
+        "name":"None",
+        "id": 0,
+        "model_list":[]
+    },
+    {
+        "name":"SwiftLite Blending",
+        "id":1,
+        "model_list":[{"harmonization":"PCTNet"}, {"shadow-generation":"blender"},{"border-smoothing":"default"}]
+    },
+    {
+        "name":"Deep Blending",
+        "id":2,
+        "model_list":[{"harmonization":"palette"}, {"shadow-generation":"blender"},{"border-smoothing":"default"}]
+    }
+],
+"solutions":[
+    {
+       
+        "name":"None",
+        "input_schema":{"process_id": "<process_id>", "inputs":["<background_image_url>", "<foreground_image_url>"]},
+        "output_schema":{"outputs": ["<output_signed_url>"]},
+        "endpoint":"/cocreation/process_image"
+    },
+    {
+        "name":"SwiftLite Blending",
+        "input_schema":{"process_id": "<process_id>", "inputs":["<background_image_url>", "<foreground_image_url>"]},
+        "output_schema":{"outputs": ["<output_signed_url>"]},
+        "endpoint":"/cocreation/process_image"
+    },
+    {
+        "name":"Deep Blending",
+        "input_schema":{"process_id": "<process_id>", "inputs":["<background_image_url>", "<foreground_image_url>"]},
+        "output_schema":{"outputs": ["<output_signed_url>"]},
+        "endpoint":"/cocreation/process_image"
+    }
+]
+}
+
+
+
+
+
+
+
+
+
