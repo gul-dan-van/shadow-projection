@@ -169,9 +169,7 @@ def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
         # Apply the scaling factor to get new dimensions
         new_dimensions = (int(width * scale_factor), int(height * scale_factor))
         image = cv2.resize(image, new_dimensions, interpolation=cv2.INTER_AREA)
-    else:
-        new_dimensions = (image.shape[1], image.shape[0])  # width, height
-    
+
     return image
 
 def compress_image(final_image: np.ndarray) -> np.ndarray:
