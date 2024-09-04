@@ -7,3 +7,5 @@ flask
 python-dotenv
 tqdm
 requests
+litserve
+pydantic
