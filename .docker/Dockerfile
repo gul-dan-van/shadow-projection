@@ -33,5 +33,6 @@ RUN pip3 install --no-cache-dir torch==2.3.1 torchvision -f https://download.pyt
 # Copy the rest of the application code to the working directory
 COPY . .
 
+RUN sed -i 's|/health|/custom/health|g' /usr/local/lib/python3.10/dist-packages/litserve/server.py
 # Set the default command to run when the container starts
 ENTRYPOINT ["python", "app.py"]
