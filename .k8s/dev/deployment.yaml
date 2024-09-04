@@ -29,12 +29,12 @@ spec:
           name: cocreation
           resources:
             requests:
-              cpu: "1"
-              memory: 2048Mi
+              cpu: "4"
+              memory: 8196Mi
               ephemeral-storage: 5Gi
             limits:
-              cpu: "2"
-              memory: 4096Mi
+              cpu: "4"
+              memory: 8196Mi
               ephemeral-storage: 5Gi
               nvidia.com/gpu: 1
           livenessProbe:
