@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cocreation-deployment
+  namespace: zingcam
+  labels:
+    name: cocreation
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: cocreation
+  template:
+    metadata:
+      labels:
+        app: cocreation
+    spec:
+      nodeSelector:
+        cloud.google.com/compute-class: "Accelerator"
+        cloud.google.com/gke-accelerator: nvidia-tesla-t4
+        cloud.google.com/gke-accelerator-count: "1"
+      containers:
+        - image: gcr.io/development-382019/github.com/homingos/co-creation-pipeline
+          name: cocreation
+          resources:
+            requests:
+              cpu: "4"
+              memory: 8196Mi
+              ephemeral-storage: 5Gi
+            limits:
+              cpu: "4"
+              memory: 8196Mi
+              ephemeral-storage: 5Gi
+              nvidia.com/gpu: 1
+          livenessProbe:
+            httpGet:
+              path: /cocreation/health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /cocreation/health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /cocreation/health
+              port: 8000
+              scheme: HTTP
+            failureThreshold: 20
+            periodSeconds: 6
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: APP_ENV
+              value: "prod"
+            - name: PORT
+              value: "8000"
+            - name: CONTEXT
+              value: "cocreation"
+            - name: Service_Name
+              value: "cocreation"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+      restartPolicy: Always
+      serviceAccount: default
