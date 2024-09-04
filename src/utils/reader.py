@@ -172,7 +172,7 @@ def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
     else:
         new_dimensions = (image.shape[1], image.shape[0])  # width, height
     
-    return image, new_dimensions
+    return image
 
 def compress_image(final_image: np.ndarray) -> np.ndarray:
     # Check the size of the final image
