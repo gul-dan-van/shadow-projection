@@ -14,15 +14,15 @@ class ModelDownloader:
     :type model_folder_path: str, optional
     """
 
-    def __init__(self, config: SimpleNamespace, model_folder_path: str = './model_data') -> None:
+    def __init__(self, model_type: str, model_folder_path: str = './model_data') -> None:
         """
         Initializes the ModelDownloader with configuration and model folder path.
 
         :param config: Configuration object containing model bucket details.
         :param model_folder_path: Local path to save downloaded models.
         """
-        self.config = config
-        self.model_path = join(model_folder_path, f'{config.model_type.lower()}.pth')
+        self.model_type = model_type
+        self.model_path = join(model_folder_path, f'{self.model_type.lower()}.pth')
         self.bucket_name = 'flamai'
 
         # Remove existing model folder if it exists
@@ -37,7 +37,7 @@ class ModelDownloader:
         :rtype: str
         """
         print('Downloading models ...')
-        command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.config.model_type.lower()}.pth -O {self.model_path}"
+        command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.model_type.lower()}.pth -O {self.model_path}"
         process = subprocess.Popen(command, shell=True)
         process.wait()
         
