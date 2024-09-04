@@ -25,7 +25,7 @@ spec:
         cloud.google.com/gke-accelerator: nvidia-tesla-t4
         cloud.google.com/gke-accelerator-count: "1"
       containers:
-        - image: gcr.io/development-382019/github.com/homingos/co-creation-pipeline
+        - image: gcr.io/flam-prod/github.com/homingos/co-creation-pipeline
           name: cocreation
           resources:
             requests:
