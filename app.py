@@ -11,7 +11,7 @@ import numpy as np
 from flask import Flask, request, render_template, jsonify
 
 from src.utils.config_manager import ConfigManager
-from src.utils.reader import ImageReader
+from src.utils.reader import ImageReader, resize_image, compress_image
 from src.composition.image_composition import ImageComposition
 
 
@@ -103,8 +103,16 @@ class MyApp:
                 input_urls = url_dict['inputs']
                 output_urls = url_dict['outputs']
                 process_id = url_dict['process_id']
-                background_image = image_reader.get_image_from_url(input_urls[0])
-                foreground_image = image_reader.get_image_from_url(input_urls[1])
+                background_image = resize_image(image_reader.get_image_from_url(input_urls[0]))
+                foreground_image = resize_image(image_reader.get_image_from_url(input_urls[1]))
+
+                # Ensure the images have the same dimensions
+                if foreground_image.shape[:2] != background_image.shape[:2]:
+                    target_size = (min(foreground_image.shape[1], background_image.shape[1]),
+                                   min(foreground_image.shape[0], background_image.shape[0]))
+                    foreground_image = cv2.resize(foreground_image, target_size)
+                    background_image = cv2.resize(background_image, target_size)
+
                 composite_frame, composite_mask = simple_blend(foreground_image, background_image)
             
             except ValueError as e:
@@ -115,6 +123,7 @@ class MyApp:
 
             final_image, _ = self.image_composer.process_composite(composite_frame, composite_mask, background_image.astype(np.uint8))
             print(f"Time taken to process image: {time() - start_time:2f}")
+            final_image = compress_image(final_image)
 
             send_time_start = time()
             

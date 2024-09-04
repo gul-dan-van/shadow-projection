@@ -4,6 +4,8 @@ import requests
 from threading import Thread, Event
 from typing import Dict, Tuple, Union
 from io import BytesIO
+from PIL import Image
+import io
 
 import cv2
 import numpy as np
@@ -142,3 +144,47 @@ class VideoReader:
             'resolution': (frame_width, frame_height),
             'fps': float(self.stream.get(cv2.CAP_PROP_FPS))
         }
+
+
+def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
+    """Resize the image if its size is larger than 5 MB while maintaining aspect ratio."""
+    resize_dimensions = {
+        'landscape': (1280, 720),
+        'portrait': (720, 1280)
+    }
+    
+    image_size_mb = image.nbytes / (1024 * 1024)
+    if image_size_mb > 5.00:
+        height, width = image.shape[:2]
+
+        # Determine orientation and set max dimensions accordingly
+        if width > height:
+            max_width, max_height = resize_dimensions['landscape']
+        else:
+            max_width, max_height = resize_dimensions['portrait']
+
+        # Calculate the scaling factor
+        scale_factor = min(max_width / width, max_height / height)
+
+        # Apply the scaling factor to get new dimensions
+        new_dimensions = (int(width * scale_factor), int(height * scale_factor))
+        image = cv2.resize(image, new_dimensions, interpolation=cv2.INTER_AREA)
+
+    return image
+
+def compress_image(final_image: np.ndarray) -> np.ndarray:
+    # Check the size of the final image
+    _, final_image_encoded = cv2.imencode(".png", final_image)
+    final_image_bytes = final_image_encoded.tobytes()
+    final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
+
+    if final_image_size_mb > 5:
+        # Compress the image to reduce its size
+        pil_image = Image.fromarray(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="JPEG", quality=85)  # Adjust quality as needed
+        buffer.seek(0)
+        final_image = np.array(Image.open(buffer).convert("RGB"))
+        print("Image compressed to reduce size below 5MB.")
+
+    return final_image
