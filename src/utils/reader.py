@@ -182,7 +182,16 @@ def compress_image(final_image: np.ndarray) -> np.ndarray:
         # Compress the image to reduce its size
         pil_image = Image.fromarray(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
         buffer = io.BytesIO()
-        pil_image.save(buffer, format="JPEG", quality=85)  # Adjust quality as needed
+        quality = 85  # Initial quality
+        while final_image_size_mb > 5 and quality > 10:
+            buffer.seek(0)
+            pil_image.save(buffer, format="JPEG", quality=quality)
+            buffer.seek(0)
+            final_image_bytes = buffer.getvalue()
+            final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
+            quality -= 5  # Reduce quality in steps
+            print(f"Trying compression with quality={quality}, size={final_image_size_mb:.2f}MB")
+
         buffer.seek(0)
         final_image = np.array(Image.open(buffer).convert("RGB"))
         print("Image compressed to reduce size below 5MB.")
