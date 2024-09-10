@@ -41,7 +41,7 @@ def postprocess(images):
 def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     fg_mask = np.where(fg_image[:, :, 3] > 128, 255, 0)
     blended_image = np.copy(bg_image)
-    blended_image[fg_mask != 0] = fg_image[fg_mask != 0]
+    blended_image[:,:,:3][fg_mask != 0] = fg_image[:,:,:3][fg_mask != 0]
     return blended_image.astype(np.uint8), fg_mask.astype(np.uint8)
 
 

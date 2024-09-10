@@ -143,5 +143,5 @@ class SimpleLitAPI(ls.LitAPI):
 if __name__ == "__main__":
     # scale with advanced features (batching, GPUs, etc...)
     server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=4, api_path="/cocreation/predict")
-    server.run(port=8000)
+    server.run(port=8000, generate_client_file=False)
 
