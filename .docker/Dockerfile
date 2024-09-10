@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHON_VERSION=3.10 \
-    PYTHONPATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages \
+    PYTHONPATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages:/usr/local/lib/python${PYTHON_VERSION}/dist-packages \
     PATH=/usr/bin:/usr/local/bin:$PATH
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,11 +27,16 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
 
 # Final stage
 FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime AS app
-
 COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
-
 WORKDIR /app
 COPY . .
 
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=UTC \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHON_VERSION=3.10 \
+    PYTHONPATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages:/usr/local/lib/python${PYTHON_VERSION}/dist-packages \
+    PATH=/usr/bin:/usr/local/bin:$PATH
+    
 ENTRYPOINT ["python", "app.py"]
