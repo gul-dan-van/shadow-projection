@@ -36,7 +36,7 @@ steps:
       - --timeout=40m
       
 options:
-  machineType: 'E2_STANDARD_8'
+  machineType: 'E2_HIGHCPU_8'
 
 availableSecrets:
   secretManager:
