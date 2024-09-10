@@ -19,7 +19,7 @@ steps:
       - --dockerfile=.docker/Dockerfile
       - --destination=gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA
       - --cache=true
-      - --cache-ttl=2d
+      - --cache-ttl=48h
       
   - name: "ubuntu"
     env:
