@@ -26,7 +26,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
     && sed -i 's|/health|/cocreation/health|g' /usr/local/lib/python3.10/dist-packages/litserve/server.py
 
 # Final stage
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime AS app
 
 COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
