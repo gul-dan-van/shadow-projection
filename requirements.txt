@@ -9,3 +9,4 @@ tqdm
 requests
 litserve
 pydantic
+torchvision
