@@ -1,4 +1,5 @@
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+# Build stage
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
@@ -22,8 +23,15 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt \
-    && sed -i 's|/health|/cocreation/health|g' /usr/local/lib/python3.10/site-packages/litserve/server.py
+    && sed -i 's|/health|/cocreation/health|g' /usr/local/lib/python3.10/dist-packages/litserve/server.py
 
+# Final stage
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+
+COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+WORKDIR /app
 COPY . .
 
 ENTRYPOINT ["python", "app.py"]
