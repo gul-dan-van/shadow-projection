@@ -14,22 +14,13 @@ steps:
         git lfs install
         git lfs pull
 
-  - name: "gcr.io/cloud-builders/docker"
+  - name: "gcr.io/kaniko-project/executor:latest"
     args:
-      [
-        "build",
-        "-f",
-        ".docker/Dockerfile",
-        "-t",
-        "gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "push",
-        "gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA",
-      ]
+      - --dockerfile=.docker/Dockerfile
+      - --destination=gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA
+      - --cache=true
+      - --cache-ttl=2ds
+      
   - name: "ubuntu"
     env:
       - "BUILD_ENV=${_BUILD_ENV}"
