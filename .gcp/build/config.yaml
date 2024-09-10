@@ -20,6 +20,9 @@ steps:
       - --destination=gcr.io/$PROJECT_ID/github.com/homingos/$REPO_NAME:$REF_NAME-$COMMIT_SHA
       - --cache=true
       - --cache-ttl=48h
+      - --target=app
+      - --compressed-caching=false
+      - --cache-copy-layers=true
       
   - name: "ubuntu"
     env:
@@ -36,7 +39,7 @@ steps:
       - --timeout=40m
       
 options:
-  machineType: 'E2_HIGHCPU_8'
+  machineType: 'E2_HIGHCPU_32'
 
 availableSecrets:
   secretManager:
