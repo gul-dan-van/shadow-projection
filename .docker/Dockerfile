@@ -19,5 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/requirements /opt/conda/lib/python3.10/site-packages/
 RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
 COPY . /app
+RUN adduser -m server
+USER server
+RUN chmod -R 755 /app
 EXPOSE 8000
 ENTRYPOINT ["python", "app.py"]
