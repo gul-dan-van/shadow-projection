@@ -20,6 +20,4 @@ COPY --from=builder /app/requirements /opt/conda/lib/python3.10/site-packages/
 RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
 COPY . /app
 EXPOSE 8000
-RUN useradd -m server
-USER server
 ENTRYPOINT ["python", "app.py"]
