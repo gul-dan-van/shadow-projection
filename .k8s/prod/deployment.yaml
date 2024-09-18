@@ -33,8 +33,8 @@ spec:
               memory: 8196Mi
               ephemeral-storage: 5Gi
             limits:
-              cpu: "4"
-              memory: 8196Mi
+              cpu: "8"
+              memory: 16392Mi
               ephemeral-storage: 5Gi
               nvidia.com/gpu: 1
           livenessProbe:
