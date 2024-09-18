@@ -113,7 +113,7 @@ def preprocess_pctnet(composite_frame: np.ndarray, composite_mask: np.ndarray, d
     img_lr = transformer(img_lr).float().to(device)
     mask_lr = transformer(mask_lr).float().to(device)
 
-    return img_lr, img, mask_lr, mask
+    return composite_frame, composite_mask, img_lr, img, mask_lr, mask
 
 def preprocess_palette(composite_frame: np.ndarray, composite_mask: np.ndarray, device) -> Tuple[torch.tensor, torch.tensor]:
     """
@@ -144,7 +144,7 @@ def preprocess_palette(composite_frame: np.ndarray, composite_mask: np.ndarray, 
     transformed_frame = tfs_composite(composite_frame).unsqueeze(0).to(device)
     transformed_mask = tfs_mask(composite_mask).to(device)
 
-    return composite_frame, transformed_frame, transformed_mask
+    return composite_frame, composite_mask, transformed_frame, transformed_mask
 
 
 def postprocess_pctnet(outputs) -> np.ndarray:
