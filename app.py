@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from src.utils.reader import ImageReader, resize_image
 from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.palette.net.network import Palette
+from src.composition.image_processing.smoothening import BorderSmoothing
 from src.composition.utils.model_downloader import ModelDownloader
 from base_utils import *
 
@@ -37,6 +38,10 @@ class SimpleLitAPI(ls.LitAPI):
             'pctnet': PCTNet,
             'palette': Palette
         }
+
+        self.foreground_image = None
+        self.background_image = None
+        self.border_smoothing = BorderSmoothing()
 
         self.model_downloader_pctnet = ModelDownloader('pctnet', './')
         self.model_downloader_pctnet.download_models()
@@ -89,6 +94,9 @@ class SimpleLitAPI(ls.LitAPI):
             foreground_image = cv2.resize(foreground_image, target_size)
             background_image = cv2.resize(background_image, target_size)
 
+        self.foreground_image = foreground_image
+        self.background_image = background_image
+
         composite_frame, composite_mask = simple_blend(foreground_image, background_image.astype(np.uint8))
         
         if context['params']["model_type"].lower() == 'pctnet':
@@ -107,18 +115,19 @@ class SimpleLitAPI(ls.LitAPI):
 
         if context['params']['model_type'] == 'pctnet':
             with torch.no_grad():
-                img_lr, img, mask_lr, mask = preprocessed_data
+                composite_frame, composite_mask, img_lr, img, mask_lr, mask = preprocessed_data
                 outputs = self.pctnet(img_lr, img, mask_lr, mask)
                 final_image = postprocess_pctnet(outputs)
         
         elif context['params']['model_type'] == 'palette':
             with torch.no_grad():
-                composite_frame, transformed_frame, transformed_mask = preprocessed_data
+                composite_frame, composite_mask, transformed_frame, transformed_mask = preprocessed_data
                 outputs, _ = self.palette.restoration(transformed_frame, transformed_frame, y_0=transformed_frame, mask=transformed_mask, sample_num=1)
                 final_image = postprocess_palette(composite_frame, transformed_frame, outputs)
         else:
             raise ValueError("Model type not supported....")
-
+        
+        final_image = self.border_smoothing.infer(final_image, composite_mask, self.background_image)
         return final_image
 
     def encode_response(self, final_image, context):
@@ -144,4 +153,3 @@ if __name__ == "__main__":
     # scale with advanced features (batching, GPUs, etc...)
     server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=10, api_path="/cocreation/predict", timeout=300)
     server.run(port=8000)
-
