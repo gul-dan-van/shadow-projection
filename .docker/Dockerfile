@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #Copy requirements from Builder stage
 COPY --from=builder /app/requirements /opt/conda/lib/python3.10/site-packages/
+RUN pip3 uninstall psutil -y
 RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
 COPY . /app
 EXPOSE 8000
