@@ -41,7 +41,7 @@ def postprocess(images):
 def simple_blend(fg_image: np.ndarray, bg_image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     fg_mask = np.where(fg_image[:, :, 3] > 128, 255, 0)
     blended_image = np.copy(bg_image)
-    blended_image[:,:,:3][fg_mask != 0] = fg_image[:,:,:3][fg_mask != 0]
+    blended_image[:,:, :3][fg_mask != 0] = fg_image[:,:, :3][fg_mask != 0]
     return blended_image.astype(np.uint8), fg_mask.astype(np.uint8)
 
 
@@ -98,8 +98,6 @@ def preprocess_pctnet(composite_frame: np.ndarray, composite_mask: np.ndarray, d
     
     img = cv2.cvtColor(composite_frame, cv2.COLOR_BGR2RGB)
     mask = composite_mask
-    print(img.shape)
-    print(mask.shape)
     img_lr = cv2.resize(img, (256, 256))
     mask_lr = cv2.resize(composite_mask, (256, 256))
 

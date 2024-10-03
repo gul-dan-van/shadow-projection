@@ -1,4 +1,3 @@
-
 import cv2
 import numpy as np
 from typing import List
@@ -85,7 +84,7 @@ class ShadowGenerator:
         return total_shadow_mask, total_feet_mask
 
 
-    def infer(self, image, blur_size=(15, 15), pose_indices=[29, 30, 31, 32], save_gradient_path=None):
+    def infer(self, image: np.ndarray, blur_size=(15, 15), pose_indices=[29, 30, 31, 32], save_gradient_path=None):
         
         angle = 40          # Angle of the shadow in degrees
         shadow_length = .70   # Length of the shadow
@@ -94,13 +93,14 @@ class ShadowGenerator:
 
         masks = self.mask_generator.get_person_masks(image)
         print(len(masks), ": Masks Detected")
-        
+
+        processed_image = image.astype(np.uint8)
         combined_mask = np.any([mask > 0 for mask in masks], axis=0)
         combined_mask_3 = np.stack([combined_mask] * 3, axis=-1)
 
         # Generate shadow masks for both angles
-        total_shadow_mask1, total_feet_mask1 = self.get_transformed_masks(image, masks, angle, shadow_length, pose_indices)
-        total_shadow_mask2, total_feet_mask2 = self.get_transformed_masks(image, masks, angle + angle_offset, shadow_length, pose_indices)
+        total_shadow_mask1, total_feet_mask1 = self.get_transformed_masks(processed_image, masks, angle, shadow_length, pose_indices)
+        total_shadow_mask2, total_feet_mask2 = self.get_transformed_masks(processed_image, masks, angle + angle_offset, shadow_length, pose_indices)
 
         # Combine the two shadow masks
         combined_shadow_mask = np.maximum(total_shadow_mask1, total_shadow_mask2)

@@ -2,6 +2,7 @@ from os.path import exists
 import queue
 from threading import Thread, Event
 from typing import Dict, Tuple, Union, List
+from PIL import Image
 from io import BytesIO
 import requests  # Add this import
 
@@ -38,7 +39,7 @@ class ImageReader:
             raise RuntimeError(
                 f"Image Path '{path}' does not exist. Please check the provided path."
             )
-        image = cv2.cvtColor(cv2.imread(path, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB)
+        image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if image is None:
             raise ValueError(f"Failed to read image from path: {path}")
         return image
@@ -47,7 +48,7 @@ class ImageReader:
         """Read an image from a file stream."""
         try:
             file_bytes = np.asarray(bytearray(file_stream.read()), dtype=np.uint8)
-            image = cv2.cvtColor(cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB)
+            image = cv2.cvtColor(file_bytes, cv2.IMREAD_UNCHANGED)
             if image is None:
                 raise ValueError("Failed to decode image from stream")
             return image
@@ -64,7 +65,7 @@ class ImageReader:
 
             image_bytes = image_response.content
             file_bytes = np.asarray(bytearray(image_bytes), dtype=np.uint8)
-            image = cv2.cvtColor(cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB)
+            image = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
             if image is None:
                 raise ValueError("Failed to decode image from URL")
@@ -305,3 +306,55 @@ class VideoReader:
             'resolution': (frame_width, frame_height),
             'fps': float(self.stream.get(cv2.CAP_PROP_FPS))
         }
+
+def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
+    """Resize the image if its size is larger than 5 MB while maintaining aspect ratio."""
+    resize_dimensions = {
+        'landscape': (1280, 720),
+        'portrait': (720, 1280)
+    }
+    
+    image_size_mb = image.nbytes / (1024 * 1024)
+    if image_size_mb > 5.00:
+        height, width = image.shape[:2]
+
+        # Determine orientation and set max dimensions accordingly
+        if width > height:
+            max_width, max_height = resize_dimensions['landscape']
+        else:
+            max_width, max_height = resize_dimensions['portrait']
+
+        # Calculate the scaling factor
+        scale_factor = min(max_width / width, max_height / height)
+
+        # Apply the scaling factor to get new dimensions
+        new_dimensions = (int(width * scale_factor), int(height * scale_factor))
+        image = cv2.resize(image, new_dimensions, interpolation=cv2.INTER_AREA)
+
+    return image
+
+def compress_image(final_image: np.ndarray) -> np.ndarray:
+    # Check the size of the final image
+    _, final_image_encoded = cv2.imencode(".png", final_image)
+    final_image_bytes = final_image_encoded.tobytes()
+    final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
+
+    if final_image_size_mb > 5:
+        # Compress the image to reduce its size
+        pil_image = Image.fromarray(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
+        buffer = BytesIO()
+        quality = 85  # Initial quality
+        while final_image_size_mb > 5 and quality > 10:
+            buffer.seek(0)
+            pil_image.save(buffer, format="JPEG", quality=quality)
+            buffer.seek(0)
+            final_image_bytes = buffer.getvalue()
+            final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
+            quality -= 5  # Reduce quality in steps
+            print(f"Trying compression with quality={quality}, size={final_image_size_mb:.2f}MB")
+
+        buffer.seek(0)
+        final_image = np.array(Image.open(buffer).convert("RGB"))
+        print("Image compressed to reduce size below 5MB.")
+
+    return final_image
