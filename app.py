@@ -49,15 +49,15 @@ class SimpleLitAPI(ls.LitAPI):
 
         self.model_downloader_pctnet = ModelDownloader('pctnet', './')
         self.model_downloader_pctnet.download_models()
-        # self.model_downloader_palette = ModelDownloader('palette', './')
-        # self.model_downloader_palette.download_models()
+        self.model_downloader_palette = ModelDownloader('palette', './')
+        self.model_downloader_palette.download_models()
 
-        # palette_model_path = './palette.pth'
-        # self.palette = self.image_harmonization_models['palette'](**PALETTE_MODEL_CONFIG)
-        # self.palette.load_state_dict(self.load_model(palette_model_path), strict=False)
-        # self.palette.set_new_noise_schedule(phase='test')
-        # self.palette.to(self.device)
-        # self.palette.eval()
+        palette_model_path = './palette.pth'
+        self.palette = self.image_harmonization_models['palette'](**PALETTE_MODEL_CONFIG)
+        self.palette.load_state_dict(self.load_model(palette_model_path), strict=False)
+        self.palette.set_new_noise_schedule(phase='test')
+        self.palette.to(self.device)
+        self.palette.eval()
 
         pctnet_model_path = "./pctnet.pth"
         self.pctnet = self.image_harmonization_models['pctnet']()
