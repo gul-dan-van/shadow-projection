@@ -11,3 +11,4 @@ litserve
 pydantic
 torchvision
 ultralytics
+mediapipe
