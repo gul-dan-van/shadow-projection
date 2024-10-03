@@ -176,6 +176,6 @@ def get_model_config(env_path: str, env_params: dict) -> Dict:
     return env_params
 
 if __name__ == "__main__":
-    ENV_PATH ="/Users/amritanshupandey/Documents/flam/image-video-blending/produciton/co-creation-pipeline/envs/config_test.env"
+    ENV_PATH ="./envs/config_test.env"
     config_manager = ConfigManager(ENV_PATH)
     print(config_manager.display_config())
