@@ -8,8 +8,8 @@ from ultralytics import YOLO, SAM
 
 class PersonSegmentationExtractor:    
     def __init__(self, yolo_model_path='yolov10n.pt', sam2_model_path='sam2_b.pt'):
-        self.yolo_model = YOLO(yolo_model_path)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.yolo_model = YOLO(yolo_model_path).to(self.device)
         self.sam2_model = SAM(sam2_model_path).to(self.device)
 
     def get_person_bounding_boxes(self, image):
@@ -39,8 +39,12 @@ class PersonSegmentationExtractor:
             results = self.sam2_model.predict(image_rgb, bboxes=bbox)  # Use the correct SAM model function
             
             # Extract masks from the result
-            for result in results:
-                mask = result.masks.numpy()
+            for index, result in enumerate(results):
+                if self.device != 'cpu':
+                    mask = result.masks.cpu().numpy()
+                else:
+                    mask = result.masks.numpy()
+
                 mask = mask.data.squeeze(0)
                 bin_mask = (mask > 0).astype(np.uint8) * 255
                 person_masks.append(bin_mask)
