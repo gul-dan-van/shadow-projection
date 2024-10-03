@@ -10,3 +10,4 @@ requests
 litserve
 pydantic
 torchvision
+ultralytics
