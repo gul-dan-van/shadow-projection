@@ -1,8 +1,9 @@
-import cv2
-import numpy as np
 from typing import List
 
-from src.composition.shadow_generation.net.person_segmentation import PersonSegmentationExtractor
+import cv2
+import numpy as np
+
+from src.composition.shadow_generation.person_segmentation import PersonSegmentationExtractor
 from src.composition.shadow_generation.utils.helper import *
 from src.composition.shadow_generation.utils.pose_estimation  import get_feet_coords
 
