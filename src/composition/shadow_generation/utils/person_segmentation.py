@@ -6,11 +6,15 @@ import torch
 from ultralytics import YOLO, SAM
 
 
-class PersonSegmentationExtractor:    
-    def __init__(self, yolo_model_path='yolov10n.pt', sam2_model_path='sam2_b.pt'):
+class PersonSegmentationExtractor:
+    YOLO_MODEL = "yolov10n.pt"
+    SAM2_MODEL = "sam2_s.pt"
+
+    def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.yolo_model = YOLO(yolo_model_path).to(self.device)
-        self.sam2_model = SAM(sam2_model_path).to(self.device)
+        self.yolo_model = YOLO(self.YOLO_MODEL).to(self.device)
+        self.sam2_model = SAM(self.SAM2_MODEL).to(self.device)
+        print("Initialized Person Segmentation Extraction Models...")
 
     def get_person_bounding_boxes(self, image):
         outputs = self.yolo_model(image)[0]

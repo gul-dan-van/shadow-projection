@@ -12,3 +12,8 @@ pydantic
 torchvision
 ultralytics
 mediapipe
+diffusers==0.27.2
+transformers==4.41.1
+fvcore==0.1.5.post20221221
+pycocotools
+pillow=9.5.0
