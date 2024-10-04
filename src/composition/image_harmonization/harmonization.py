@@ -250,6 +250,9 @@ class ImageHarmonization:
         updated_nparray = np.where(updated_nparray > 255, 255, updated_nparray)
         harmonized_image = np.where(updated_nparray <= 0, 0, updated_nparray)
 
+        # Sharpen the upscaled harmonized image using the high-frequency details from the original image
+        harmonized_image = self.sharpen_image(harmonized_image, composite_frame)
+
         return harmonized_image
 
     def infer(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
