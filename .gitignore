@@ -167,5 +167,6 @@ input
 *.mp4
 *.avi
 *.pth
+*.pt
 *.env
 .DS_Store

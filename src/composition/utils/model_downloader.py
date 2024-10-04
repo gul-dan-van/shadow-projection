@@ -37,10 +37,11 @@ class ModelDownloader:
         :rtype: str
         """
         print('Downloading models ...')
-        command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.model_type.lower()}.pth -O {self.model_path}"
-        process = subprocess.Popen(command, shell=True)
-        process.wait()
-        
+        if not exists(f"./{self.model_type.lower()}.pth"):
+            command = f"wget https://storage.googleapis.com/{self.bucket_name}/{self.model_type.lower()}.pth -O {self.model_path}"
+            process = subprocess.Popen(command, shell=True)
+            process.wait()
+            
 
     
 
