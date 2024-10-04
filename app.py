@@ -11,7 +11,6 @@ from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader, resize_image
 from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.palette.net.network import Palette
-from src.composition.image_processing.smoothening import BorderSmoothing
 from src.composition.shadow_generation.shadow_generation import ShadowGenerator
 from src.composition.utils.model_downloader import ModelDownloader
 from base_utils import *
@@ -51,8 +50,7 @@ class SimpleLitAPI(ls.LitAPI):
         self.model_downloader_pctnet.download_models()
         self.model_downloader_palette = ModelDownloader('palette', './')
         self.model_downloader_palette.download_models()
-
-        self.border_smoothing = BorderSmoothing()
+        
         self.shadow_generator = ShadowGenerator()
 
         palette_model_path = './palette.pth'
@@ -164,5 +162,5 @@ class SimpleLitAPI(ls.LitAPI):
 # (STEP 2) - START THE SERVER
 if __name__ == "__main__":
     # scale with advanced features (batching, GPUs, etc...)
-    server = ls.LitServer(SimpleLitAPI(), accelerator="cpu", workers_per_device=1, api_path="/cocreation/predict", timeout=300)
+    server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=4, api_path="/cocreation/predict", timeout=300)
     server.run(port=8000, generate_client_file=False)
