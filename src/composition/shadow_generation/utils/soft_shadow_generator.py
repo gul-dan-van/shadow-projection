@@ -11,12 +11,13 @@ from src.composition.image_processing.smoothening import BorderSmoothing
 
 class SoftShadowGenerator:
     CONTACT_SHADOW_STRENGTH = 0.5
-    HORIZONTAL_GRADIENT = None
+    HORIZONTAL_GRADIENT = 0.25
     ANGLE_OFFSET = 5.0
     SHADOW_LENGTH = 0.65
     
     def __init__(self) -> None:
         pass
+    
     def transform_masks(self, image, mask, angle, shadow_length, pose_indices=[29, 30, 31, 32]):
         # Ensure the mask is of type uint8
         if mask.dtype != np.uint8:
@@ -26,7 +27,7 @@ class SoftShadowGenerator:
         segmented_image = cv2.bitwise_and(image, image, mask=mask)
 
         # Proceed with pose estimation
-        feet_coords = get_feet_coords(segmented_image, pose_indices)
+        feet_coords = get_feet_coords(segmented_image, pose_indices=pose_indices)
         if feet_coords is None:
             print("Skipping mask due to no pose detected.")
             return None, None  # Indicate that this mask should be skipped

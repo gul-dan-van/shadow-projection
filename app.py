@@ -141,7 +141,7 @@ class SimpleLitAPI(ls.LitAPI):
             raise ValueError("Model type not supported....")
 
         print("Generating Shadow and Smoothening Borders around the image...")
-        final_image = self.shadow_generator.infer(harmonized_image)
+        final_image = self.shadow_generator.infer(harmonized_image, composite_mask)
         cv2.imwrite('final_image.jpg', final_image)
 
         return final_image
@@ -150,16 +150,16 @@ class SimpleLitAPI(ls.LitAPI):
         output_url = context['output_signed_url']
         process_id = context['process_id']
         response = 200
-
+        cv2.imwrite("final_image.jpg", final_image)
         gcp_sent_status_code, message = send_image_to_gcp(final_image, output_url)        
         if str(gcp_sent_status_code) != '200':
             response = gcp_sent_status_code
             raise RuntimeError(message)
 
-        processed_message_status_code, message = send_process_confirmation(process_id)
-        if str(processed_message_status_code) != '200':
-            response = processed_message_status_code
-            raise RuntimeError(message)
+        # processed_message_status_code, message = send_process_confirmation(process_id)
+        # if str(processed_message_status_code) != '200':
+        #     response = processed_message_status_code
+        #     raise RuntimeError(message)
 
         return response
 

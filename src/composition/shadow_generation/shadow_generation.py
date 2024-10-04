@@ -55,9 +55,11 @@ class ShadowGenerator:
             str: The type of shadow detected.
         """
         shadowed_image, shadow_type = None, None
+        processed_image = composite_image.astype(np.uint8)
         person_masks = self.mask_generator.get_person_masks(composite_image)
-        self.shadow_type = self.infer_shadow_type(composite_image, person_masks)
-        shadowed_image = self.shadow_generators[shadow_type.lower()](composite_image, composite_mask, person_masks)
+        shadow_type = self.infer_shadow_type(composite_image, person_masks)
+        print(f"Shadow Type: {shadow_type}")
+        shadowed_image = self.shadow_generators[shadow_type.lower()](processed_image, composite_mask, person_masks)
 
         for mask in person_masks:
             shadowed_image = self.border_smoothing.infer(shadowed_image, mask, shadowed_image)

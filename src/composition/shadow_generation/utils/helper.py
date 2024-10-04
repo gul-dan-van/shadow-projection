@@ -60,7 +60,7 @@ def add_contact_shadow(binary_mask: np.ndarray, blended_image: np.ndarray, conta
     # cv2.imwrite("contact_shadow_region.jpg", contact_shadow_region)
     return blended_image.astype(np.uint8)
 
-def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = None, vertical_exp: int = 1) -> np.ndarray:
+def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = None, vertical_exp: int = 1, hz_gradient: float = 0.25) -> np.ndarray:
     h, w = shadow_mask.shape[:2]
     
     # Get the bounding box of the foreground object in the mask
@@ -91,7 +91,7 @@ def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = No
     shadow_with_vertical_gradient = shadow_mask * full_vertical_gradient
 
     # Horizontal gradient applied only within the bounding box
-    horizontal_gradient = np.linspace(0.25, 0.25, object_width)
+    horizontal_gradient = np.linspace(hz_gradient, hz_gradient, object_width)
     horizontal_gradient = np.minimum(horizontal_gradient, horizontal_gradient[::-1])  # Symmetric (darker in center)
     horizontal_gradient = horizontal_gradient.reshape(1, object_width)
 
