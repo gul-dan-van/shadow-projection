@@ -91,8 +91,8 @@ class SimpleLitAPI(ls.LitAPI):
 
         image_reader =  ImageReader()
         print("Reading Images....")
-        background_image = image_reader.get_image(context['background_image_url'], stream_type="local")
-        foreground_image = image_reader.get_image(context['foreground_image_url'], stream_type="local")
+        background_image = image_reader.get_image(context['background_image_url'], stream_type="url")
+        foreground_image = image_reader.get_image(context['foreground_image_url'], stream_type="url")
 
         # Ensure the images have the same dimensions
         if foreground_image.shape[:2] != background_image.shape[:2]:
