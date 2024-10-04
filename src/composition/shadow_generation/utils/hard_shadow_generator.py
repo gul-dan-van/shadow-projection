@@ -69,18 +69,20 @@ class HardShadowGenerator:
     def infer(self, composite_image: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         composite_image_RGB = cv2.cvtColor(composite_image, cv2.COLOR_BGR2RGB)
         comp_image = self.tfs(Image.fromarray(composite_image_RGB)).unsqueeze(0)
-        mask_image = self.tfs_mask(composite_mask).unsqueeze(0)
-        orig_mask = np.stack([np.where(np.array(orig_mask.resize((224,224)))>128,1,0)]*3)
-        orig_mask = torch.from_numpy(orig_mask)
-        comp_image = comp_image*(1-orig_mask)
+        mask_image = self.tfs_mask(Image.fromarray(composite_mask)).unsqueeze(0)
+        orig_mask = np.stack([np.where(np.array(Image.fromarray(composite_mask).resize((224,224)))>128,1,0)]*3)
+        orig_mask_tensor = torch.from_numpy(orig_mask)
+        comp_image = comp_image*(1-orig_mask_tensor)
+        clip_mask = np.where(np.repeat(composite_mask[:, :, np.newaxis], 3, axis=2)>128,1,0)
+        bg_img_clip = Image.fromarray((composite_image_RGB*(1-clip_mask)).astype(np.uint8))
         cond_image = self.set_device(torch.concat([torch.concat([comp_image, mask_image], axis=1) for _ in range(1)], axis=0), distributed=False)
         bg_img_clip = self.clip_proc(bg_img_clip.resize((224,224)), return_tensors="pt").pixel_values[0].unsqueeze(0)
         bg_img_clip = torch.concat([bg_img_clip for _ in range(1)])
         fin_shd = None
 
         for _ in range(8):
-            output, visuals = self.palette.restoration(cond_image, clip_img_emb=bg_img_clip, sample_num=1)
-            mask = Image.fromarray(Util.postprocess(output.cpu())[0]).resize(composite_image.size)
+            output, _ = self.palette.restoration(cond_image, clip_img_emb=bg_img_clip, sample_num=1)
+            mask = Image.fromarray(Util.postprocess(output.cpu())[0]).resize((composite_image.shape[1],composite_image.shape[0]))
             gray_mask = np.array(mask.convert('L'))
             if np.mean(gray_mask)/255<0.4:
                 _, otsu_thresh = cv2.threshold(gray_mask, 0, 1, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -95,9 +97,10 @@ class HardShadowGenerator:
                     fin_shd = shadow_area_fp32
         
         if fin_shd is not None:
-            diff = composite_image_RGB.to(np.float32) - fin_shd*2/3
+            diff = composite_image_RGB.astype(np.float32) - fin_shd*2/3
             return cv2.cvtColor(np.where(diff<0,0,diff).astype(np.uint8),cv2.COLOR_RGB2BGR)
         
+        print("returning original image without shadow")
         return composite_image
             
 

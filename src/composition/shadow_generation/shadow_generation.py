@@ -39,12 +39,41 @@ class ShadowGenerator:
 
     def generate_hard_shadow(self, composite_image: np.ndarray, composite_mask: np.ndarray, person_mask: List[np.ndarray]) -> np.ndarray:
         shadowed_image = self.hard_shadow_generator.infer(composite_image, composite_mask)
-        # GENERATE CONTACT SHADOWS
-    
+        
+        combined_mask = np.zeros_like(person_mask[0], dtype=np.uint8)
+        for mask in person_mask:
+            combined_mask = cv2.bitwise_or(combined_mask, mask)
+        
+        combined_mask = np.any([mask > 0 for mask in person_mask], axis=0)
+        combined_mask_3 = np.stack([combined_mask] * 3, axis=-1)
+
+        try:
+            # Determine shadow angle based on gradient analysis
+            angle = determine_shadow_direction(combined_mask, shadowed_image)
+            print(f"Determined shadow angle: {angle} degrees")
+        except Exception as e:
+            # If there is an error, use default angle
+            angle = 15  # Or any default value you prefer
+            print(f"Could not determine shadow angle, using default angle {angle} degrees. Error: {e}")
+
+        # Calculate shadow height based on angle
+        shadow_height = calculate_shadow_height(angle, 0.65)
+        print(f"Shadow height for angle {angle} degrees: {shadow_height}")
+        
+        angle_offset = 5 
+        _, total_feet_mask1 = self.soft_shadow_generator.get_transformed_masks(shadowed_image, person_mask, angle, shadow_height)
+        _, total_feet_mask2 = self.soft_shadow_generator.get_transformed_masks(shadowed_image, person_mask, angle + angle_offset, shadow_height)
+        combined_feet_mask = np.clip(total_feet_mask1 + total_feet_mask2, 0, 255)
+        bin_mask = (combined_feet_mask > 0).astype('uint8')
+        contact_shadow_image = add_contact_shadow(bin_mask, shadowed_image, contact_shadow_strength=0.5)
+        final_image = contact_shadow_image * (~combined_mask_3) + composite_image * combined_mask_3
+        
+        return final_image
+
     def generate_soft_shadow(self, composite_image: np.ndarray, composite_mask: np.ndarray, person_mask: List[np.ndarray]) -> np.ndarray:
         return self.soft_shadow_generator.infer(composite_image, person_mask)
 
-    def infer(self, composite_image: np.ndarray, composite_mask: str) -> str:
+    def infer(self, composite_image: np.ndarray, composite_mask: np.ndarray, background_image: np.ndarray) -> str:
         """
         Infer the type of shadow present in the composite image.
 
@@ -57,7 +86,7 @@ class ShadowGenerator:
         shadowed_image, shadow_type = None, None
         processed_image = composite_image.astype(np.uint8)
         person_masks = self.mask_generator.get_person_masks(composite_image)
-        shadow_type = self.infer_shadow_type(composite_image, person_masks)
+        shadow_type = self.infer_shadow_type(background_image.astype(np.float32), person_masks)
         print(f"Shadow Type: {shadow_type}")
         shadowed_image = self.shadow_generators[shadow_type.lower()](processed_image, composite_mask, person_masks)
 

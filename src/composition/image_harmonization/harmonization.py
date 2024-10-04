@@ -93,6 +93,11 @@ class ImageHarmonization:
         """
         return torch.load(model_path, map_location=self.device)
 
+    def resize_image(self, image: np.ndarray, size: tuple) -> np.ndarray:
+        """Resizes the image to the given size using high-quality interpolation."""
+        return cv2.resize(image, size, interpolation=cv2.INTER_LANCZOS4)
+
+
     def get_whitebox_harmonized_image(self, composite_image: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         """
         Harmonize an image using the whitebox model.
@@ -135,6 +140,39 @@ class ImageHarmonization:
 
         return harmonized
 
+    def extract_high_freq(self, original_image: np.ndarray) -> np.ndarray:
+        """Extracts high-frequency components from the original image using Gaussian blur and Laplacian filtering."""
+        # Apply Gaussian blur to create a smooth version of the original image
+        blurred_image = cv2.GaussianBlur(original_image, (25, 25), 0)
+
+        # Subtract the blurred image from the original to extract high-frequency details
+        high_freq = cv2.subtract(original_image, blurred_image)
+
+        return high_freq
+
+    def sharpen_image(self, harmonized_image: np.ndarray, original_image: np.ndarray) -> np.ndarray:
+        """Sharpens the harmonized image by blending it with high-frequency details."""
+        # Convert images to float32 to avoid overflow/underflow during calculations
+        harmonized_image = harmonized_image.astype(np.float32)
+        original_image = original_image.astype(np.float32)
+
+        # Extract high-frequency details from the original image
+        high_freq_components = self.extract_high_freq(original_image)
+
+        # Ensure both images are float32 before adding
+        high_freq_components = high_freq_components.astype(np.float32)
+
+        # Add the high-frequency details to the harmonized image
+        sharpened_image = cv2.add(harmonized_image, high_freq_components)
+
+        # Clip the final result to ensure pixel values are in the [0, 255] range
+        sharpened_image = np.clip(sharpened_image, 0, 255).astype(np.uint8)
+
+        # Smooth the sharpened image with a slight Gaussian blur to reduce sharpness
+        smoothed_image = cv2.GaussianBlur(sharpened_image, (5, 5), 1.5)  # Kernel size and sigma control the amount of smoothing
+
+        return smoothed_image
+
     def get_pct_harmonized_image(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         """
         Harmonize an image using the PCTNet model.
@@ -146,32 +184,27 @@ class ImageHarmonization:
         Returns:
             np.ndarray: The harmonized image array.
         """
-        img = cv2.cvtColor(composite_frame, cv2.COLOR_BGR2RGB)
+        
+        harmonization_model = PCTNet()
+
+        # Load the original mask (in original resolution)
         mask = composite_mask
-        img_lr = cv2.resize(img, (256, 256))
-        mask_lr = cv2.resize(composite_mask, (256, 256))
 
-        transformer = transforms.Compose([
-            transforms.ToTensor(),
-        ])
+        # Harmonization is done at 512x512 resolution
+        harmonized_result = harmonization_model(composite_frame, mask)
 
-        # to tensor
-        img = transformer(img).float().to(self.device)
-        mask = transformer(mask).float().to(self.device)
-        img_lr = transformer(img_lr).float().to(self.device)
-        mask_lr = transformer(mask_lr).float().to(self.device)
+        # Upscale the harmonized result back to the original resolution
+        original_size = mask.shape
+        harmonized_result_upscaled = self.resize_image(harmonized_result, original_size)
 
-        with torch.no_grad():
-            outputs = self.model(img_lr, img, mask_lr, mask)
+        # Load the original high-resolution blended image
+        original_image = composite_frame
 
-        if len(outputs.shape) == 4:
-            outputs = outputs.squeeze(0)
+        # Sharpen the upscaled harmonized image using the high-frequency details from the original image
+        sharpened_image = self.sharpen_image(harmonized_result_upscaled, original_image)
 
-        outputs = (torch.clamp(255.0 * outputs.permute(1, 2, 0),
-                   0, 255)).detach().cpu().numpy()
-        outputs = cv2.cvtColor(outputs, cv2.COLOR_RGB2BGR)
+        return sharpened_image
 
-        return outputs
 
     def get_palette_harmonized_image(self, composite_frame: np.ndarray, composite_mask: np.ndarray) -> np.ndarray:
         """

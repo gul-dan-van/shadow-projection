@@ -5,6 +5,19 @@ import numpy as np
 
 from typing import List, Tuple
 
+def calculate_angle(p1, p2, p3):
+    v1 = np.array(p1) - np.array(p2)
+    v2 = np.array(p3) - np.array(p2)
+    dot_product = np.dot(v1, v2)
+    magnitudes = np.linalg.norm(v1) * np.linalg.norm(v2)
+    if magnitudes == 0:
+        return 0
+    cos_angle = dot_product / magnitudes
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+    angle_rad = np.arccos(cos_angle)
+    angle_deg = np.degrees(angle_rad)
+    return angle_deg % 180
+
 def translate_image(image, angle_degrees, magnitude):
     angle_radians = np.radians(angle_degrees)
     tx = int(magnitude * np.cos(angle_radians))
@@ -47,20 +60,20 @@ def rotate_mask(angle, pivot_point):
 
 def add_contact_shadow(binary_mask: np.ndarray, blended_image: np.ndarray, contact_shadow_strength: float = 0.5) -> np.ndarray:
     h, w = binary_mask.shape[:2]
-    contact_shadow = cv2.dilate(binary_mask, np.ones((3, 3), np.uint8), iterations=5)
-    contact_shadow = cv2.erode(contact_shadow, np.ones((3, 3), np.uint8), iterations=3)
+    contact_shadow = cv2.dilate(binary_mask, np.ones((5, 5), np.uint8), iterations=5)
+    contact_shadow = cv2.erode(contact_shadow, np.ones((3, 3), np.uint8), iterations=9)
     
     # contact_shadow = cv2.GaussianBlur(contact_shadow, (105, 105), sigmaX=10, sigmaY=10)
     contact_shadow = contact_shadow * contact_shadow_strength
     contact_shadow = np.stack([contact_shadow] * 3, axis=-1)
-    contact_shadow_region = cv2.GaussianBlur(contact_shadow * blended_image.astype(np.float32), (9, 9), sigmaX=10, sigmaY=10)
+    contact_shadow_region = cv2.GaussianBlur(contact_shadow * blended_image.astype(np.float32), (11, 11), sigmaX=10, sigmaY=10)
 
     blended_image = blended_image.astype(np.float32) - (contact_shadow_region)
     blended_image = np.clip(blended_image, 0, 255)
     # cv2.imwrite("contact_shadow_region.jpg", contact_shadow_region)
     return blended_image.astype(np.uint8)
 
-def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = None, vertical_exp: int = 1, hz_gradient: float = 0.25) -> np.ndarray:
+def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = None, vertical_exp: int = 1) -> np.ndarray:
     h, w = shadow_mask.shape[:2]
     
     # Get the bounding box of the foreground object in the mask
@@ -91,7 +104,7 @@ def apply_shadow_intensity_gradient(shadow_mask: np.ndarray, save_path: str = No
     shadow_with_vertical_gradient = shadow_mask * full_vertical_gradient
 
     # Horizontal gradient applied only within the bounding box
-    horizontal_gradient = np.linspace(hz_gradient, hz_gradient, object_width)
+    horizontal_gradient = np.linspace(0.25, 0.25, object_width)
     horizontal_gradient = np.minimum(horizontal_gradient, horizontal_gradient[::-1])  # Symmetric (darker in center)
     horizontal_gradient = horizontal_gradient.reshape(1, object_width)
 
@@ -234,3 +247,16 @@ def determine_shadow_direction(fg_mask: np.ndarray, blended_image: np.ndarray) -
     angle = compute_light_angle(avg_mag_left, avg_mag_right)
 
     return angle  # Return angle directly
+
+def calculate_angle(p1, p2, p3):
+    v1 = np.array(p1) - np.array(p2)
+    v2 = np.array(p3) - np.array(p2)
+    dot_product = np.dot(v1, v2)
+    magnitudes = np.linalg.norm(v1) * np.linalg.norm(v2)
+    if magnitudes == 0:
+        return 0
+    cos_angle = dot_product / magnitudes
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+    angle_rad = np.arccos(cos_angle)
+    angle_deg = np.degrees(angle_rad)
+    return angle_deg % 180
