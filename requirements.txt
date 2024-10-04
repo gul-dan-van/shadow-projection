@@ -2,7 +2,7 @@ albumentations
 einops 
 kornia 
 opencv-python 
-pytorch_msssim 
+pytorch_msssim  
 flask 
 python-dotenv
 tqdm
@@ -16,4 +16,6 @@ diffusers==0.27.2
 transformers==4.41.1
 fvcore==0.1.5.post20221221
 pycocotools
-pillow=9.5.0
+pillow==9.5.0
+numpy==1.26.4
+cloudpickle
