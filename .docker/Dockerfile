@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python dependencies from the builder stage
-COPY --from=builder /app/requirements /usr/local/lib/python3.10/site-packages/
+COPY --from=builder /app/requirements /opt/conda/lib/python3.10/site-packages/
 
 # Modify litserve health check endpoint
 RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
