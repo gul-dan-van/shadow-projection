@@ -7,10 +7,11 @@ from typing import List, Dict
 
 from pydantic import BaseModel
 
+from src.utils.config_manager import ConfigManager
 from src.utils.reader import ImageReader, resize_image
 from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.palette.net.network import Palette
-from src.composition.image_processing.smoothening import BorderSmoothing
+from src.composition.shadow_generation.shadow_generation import ShadowGenerator
 from src.composition.utils.model_downloader import ModelDownloader
 from base_utils import *
 
@@ -28,11 +29,14 @@ PALETTE_MODEL_CONFIG = {'init_type': 'kaiming', 'module_name': 'guided_diffusion
 # (STEP 1) - DEFINE THE API (compound AI system)
 class SimpleLitAPI(ls.LitAPI):
     MODEL_PATH = "./"    
+
     def setup(self, device):
+        print("Downloading and Initializing Co Creation AI Models...")
+
         self.device = device
         torch.backends.cudnn.enabled = True if torch.backends.cudnn.is_available() else False
         warnings.filterwarnings("ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
-
+        
         # SETTING THE MODELS
         self.image_harmonization_models = {
             'pctnet': PCTNet,
@@ -41,12 +45,13 @@ class SimpleLitAPI(ls.LitAPI):
 
         self.foreground_image = None
         self.background_image = None
-        self.border_smoothing = BorderSmoothing()
 
         self.model_downloader_pctnet = ModelDownloader('pctnet', './')
         self.model_downloader_pctnet.download_models()
         self.model_downloader_palette = ModelDownloader('palette', './')
         self.model_downloader_palette.download_models()
+        
+        self.shadow_generator = ShadowGenerator()
 
         palette_model_path = './palette.pth'
         self.palette = self.image_harmonization_models['palette'](**PALETTE_MODEL_CONFIG)
@@ -60,8 +65,9 @@ class SimpleLitAPI(ls.LitAPI):
         self.pctnet.load_state_dict(self.load_model(pctnet_model_path))
         self.pctnet.to(self.device)
         self.pctnet.eval()
+        
 
-        print("Initializing Image Harmonization Model....")
+        print("Initializing Image Harmonization Models....")
 
     def load_model(self, model_path: str):
         """
@@ -83,9 +89,10 @@ class SimpleLitAPI(ls.LitAPI):
         context["foreground_image_url"] = request.foreground_img_url
         context["output_signed_url"] = request.output_signed_url
 
-        image_reader =  ImageReader("")
-        background_image = resize_image(image_reader.get_image_from_url(context['background_image_url']))
-        foreground_image = resize_image(image_reader.get_image_from_url(context['foreground_image_url']))
+        image_reader =  ImageReader()
+        print("Reading Images....")
+        background_image = image_reader.get_image(context['background_image_url'], stream_type="url")
+        foreground_image = image_reader.get_image(context['foreground_image_url'], stream_type="url")
 
         # Ensure the images have the same dimensions
         if foreground_image.shape[:2] != background_image.shape[:2]:
@@ -98,6 +105,7 @@ class SimpleLitAPI(ls.LitAPI):
         self.background_image = background_image
 
         composite_frame, composite_mask = simple_blend(foreground_image, background_image.astype(np.uint8))
+        print("Created Composite Frame and it's Mask...")
         
         if context['params']["model_type"].lower() == 'pctnet':
             preprocessed_data = preprocess_pctnet(composite_frame, composite_mask, self.device)
@@ -112,22 +120,25 @@ class SimpleLitAPI(ls.LitAPI):
 
     def predict(self, preprocessed_data: Tuple, context):
     # Easily build compound systems. Run inference and return the output.
-
+        harmonized_image = None
+        print("Harmonizing Image....")
         if context['params']['model_type'] == 'pctnet':
             with torch.no_grad():
                 composite_frame, composite_mask, img_lr, img, mask_lr, mask = preprocessed_data
                 outputs = self.pctnet(img_lr, img, mask_lr, mask)
-                final_image = postprocess_pctnet(outputs)
+                harmonized_image = postprocess_pctnet(outputs)
         
         elif context['params']['model_type'] == 'palette':
             with torch.no_grad():
                 composite_frame, composite_mask, transformed_frame, transformed_mask = preprocessed_data
                 outputs, _ = self.palette.restoration(transformed_frame, transformed_frame, y_0=transformed_frame, mask=transformed_mask, sample_num=1)
-                final_image = postprocess_palette(composite_frame, transformed_frame, outputs)
+                harmonized_image = postprocess_palette(composite_frame, transformed_frame, outputs)
         else:
             raise ValueError("Model type not supported....")
-        
-        final_image = self.border_smoothing.infer(final_image, composite_mask, self.background_image)
+
+        print("Generating Shadow and Smoothening Borders around the image...")
+        final_image = self.shadow_generator.infer(harmonized_image, composite_mask, self.background_image)
+
         return final_image
 
     def encode_response(self, final_image, context):
@@ -151,5 +162,5 @@ class SimpleLitAPI(ls.LitAPI):
 # (STEP 2) - START THE SERVER
 if __name__ == "__main__":
     # scale with advanced features (batching, GPUs, etc...)
-    server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=10, api_path="/cocreation/predict", timeout=300)
-    server.run(port=8000)
+    server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=1, api_path="/cocreation/predict", timeout=300)
+    server.run(port=8000, generate_client_file=False)
