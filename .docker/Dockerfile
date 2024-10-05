@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/requirements /usr/local/lib/python3.10/site-packages/
 
 # Modify litserve health check endpoint
-RUN sed -i 's|/health|/cocreation/health|g' /usr/local/lib/python3.10/site-packages/litserve/server.py
+RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
 
 # Copy the application code
 COPY . /app
