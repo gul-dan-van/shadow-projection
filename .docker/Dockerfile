@@ -14,8 +14,9 @@ WORKDIR /app
 
 # Install only the necessary system dependencies for runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
     git \
+    build-essential \
+    wget \
     ffmpeg \
     libglib2.0-0 \
     libsm6 \
@@ -27,12 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy installed Python dependencies from the builder stage
 COPY --from=builder /app/requirements /opt/conda/lib/python3.10/site-packages/
 
-# Modify litserve health check endpoint
-RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
-
-# Copy the application code
-COPY . /app
-
 # Clone InstanceShadowDetection repository and install dependencies
 RUN git clone https://github.com/stevewongv/InstanceShadowDetection.git /app/InstanceShadowDetection
 WORKDIR /app/InstanceShadowDetection
@@ -43,8 +38,15 @@ WORKDIR /app/InstanceShadowDetection/PythonAPI
 RUN python setup.py install
 WORKDIR /app
 
+# Modify litserve health check endpoint
+RUN sed -i 's|/health|/cocreation/health|g' /opt/conda/lib/python3.10/site-packages/litserve/server.py
+
+# Copy the application code
+COPY . /app
+
+RUN pip3 uninstall psutil -y
 # Expose the application port
 EXPOSE 8000
 
 # Start the application
-ENTRYPOINT ["python", "app.py"]
+ENTRYPOINT [ "python", "app.py" ]
