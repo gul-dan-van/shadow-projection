@@ -7,12 +7,12 @@ from typing import List, Dict
 
 from pydantic import BaseModel
 
-from src.utils.config_manager import ConfigManager
-from src.utils.reader import ImageReader, resize_image
 from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.palette.net.network import Palette
 from src.composition.shadow_generation.shadow_generation import ShadowGenerator
-from src.composition.utils.model_downloader import ModelDownloader
+from src.utils.config_manager import ConfigManager
+from src.utils.reader import ImageReader
+from src.utils.model_downloader import ModelDownloader
 from base_utils import *
 
 
@@ -37,31 +37,19 @@ class SimpleLitAPI(ls.LitAPI):
         torch.backends.cudnn.enabled = True if torch.backends.cudnn.is_available() else False
         warnings.filterwarnings("ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
         
-        # SETTING THE MODELS
-        self.image_harmonization_models = {
-            'pctnet': PCTNet,
-            'palette': Palette
-        }
-
         self.foreground_image = None
-        self.background_image = None
-
-        self.model_downloader_pctnet = ModelDownloader('pctnet', './')
-        self.model_downloader_pctnet.download_models()
-        self.model_downloader_palette = ModelDownloader('palette', './')
-        self.model_downloader_palette.download_models()
-        
+        self.background_image = None        
         self.shadow_generator = ShadowGenerator()
 
         palette_model_path = './palette.pth'
-        self.palette = self.image_harmonization_models['palette'](**PALETTE_MODEL_CONFIG)
+        self.palette = Palette(**PALETTE_MODEL_CONFIG)
         self.palette.load_state_dict(self.load_model(palette_model_path), strict=False)
         self.palette.set_new_noise_schedule(phase='test')
         self.palette.to(self.device)
         self.palette.eval()
 
         pctnet_model_path = "./pctnet.pth"
-        self.pctnet = self.image_harmonization_models['pctnet']()
+        self.pctnet =PCTNet()
         self.pctnet.load_state_dict(self.load_model(pctnet_model_path))
         self.pctnet.to(self.device)
         self.pctnet.eval()
@@ -161,6 +149,11 @@ class SimpleLitAPI(ls.LitAPI):
 
 # (STEP 2) - START THE SERVER
 if __name__ == "__main__":
+    # DOWNLOAD ALL COCREATION AI MODELS
+    model_list = ['pctnet', 'palette', 'shadow_palette', 'detectron2']
+    model_downloader = ModelDownloader('./')
+    model_downloader.download_multiple_objects(model_list)
+
     # scale with advanced features (batching, GPUs, etc...)
     server = ls.LitServer(SimpleLitAPI(), accelerator="auto", workers_per_device=1, api_path="/cocreation/predict", timeout=300)
     server.run(port=8000, generate_client_file=False)

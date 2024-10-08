@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 
 import skimage.transform as tf
 from src.composition.shadow_generation.network.detectron2.config import get_cfg
-from src.composition.shadow_generation.network.detectron2.data.detection_utils import read_image
-from src.composition.shadow_generation.network.detectron2.utils.logger import setup_logger
 from src.composition.shadow_generation.projects.LISA.predictor import VisualizationDemo
 from src.composition.utils.model_downloader import ModelDownloader
 
@@ -19,9 +17,8 @@ from src.composition.utils.model_downloader import ModelDownloader
 
 class ShadowClassifier:
     CONFIG_PATH = "./src/composition/shadow_generation/projects/LISA/config/LISA_101_FPN_3x_demo.yaml"
+
     def __init__(self, confidence_threshold=0.1):
-        self.model_downloader_palette = ModelDownloader('detectron2', './')
-        self.model_downloader_palette.download_models()
         self.cfg = self.setup_cfg(confidence_threshold)
         self.model = VisualizationDemo(self.cfg)
 
@@ -44,8 +41,7 @@ class ShadowClassifier:
 
         union_bbox = self._get_extended_union_bbox(bounding_boxes, image.shape)
         cropped_image = image[union_bbox[1]:union_bbox[3], union_bbox[0]:union_bbox[2]]
-        
-        cropped_image = image[union_bbox[1]:union_bbox[3], union_bbox[0]:union_bbox[2]]
+
         try:
             shadow_boxes = self._get_shadow_boxes(cropped_image)
         except:

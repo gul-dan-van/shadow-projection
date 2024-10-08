@@ -27,10 +27,6 @@ class HardShadowGenerator:
         torch.backends.cudnn.enabled = True if torch.backends.cudnn.is_available() else False
         warnings.filterwarnings(
             "ignore", message="enable_nested_tensor is True, but self.use_nested_tensor is False")
-        
-        
-        self.model_downloader_palette = ModelDownloader('shadow_palette', './')
-        self.model_downloader_palette.download_models()
 
         palette_model_path = './shadow_palette.pth'
         self.palette = Palette(**PALETTE_MODEL_CONFIG)
