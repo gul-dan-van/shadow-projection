@@ -335,7 +335,7 @@ def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
 
 def compress_image(final_image: np.ndarray) -> np.ndarray:
     # Check the size of the final image
-    _, final_image_encoded = cv2.imencode(".png", final_image)
+    _, final_image_encoded = cv2.imencode(".jpg", final_image)
     final_image_bytes = final_image_encoded.tobytes()
     final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
 
@@ -344,7 +344,7 @@ def compress_image(final_image: np.ndarray) -> np.ndarray:
         pil_image = Image.fromarray(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
         buffer = BytesIO()
         quality = 85  # Initial quality
-        while final_image_size_mb > 5 and quality > 10:
+        while final_image_size_mb > 4.8 and quality > 10:
             buffer.seek(0)
             pil_image.save(buffer, format="JPEG", quality=quality)
             buffer.seek(0)

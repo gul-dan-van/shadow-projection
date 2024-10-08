@@ -11,7 +11,7 @@ from src.composition.image_harmonization.network.pctnet.net import PCTNet
 from src.composition.image_harmonization.network.palette.net.network import Palette
 from src.composition.shadow_generation.shadow_generation import ShadowGenerator
 from src.utils.config_manager import ConfigManager
-from src.utils.reader import ImageReader
+from src.utils.reader import ImageReader, compress_image
 from src.utils.model_downloader import ModelDownloader
 from base_utils import *
 
@@ -133,7 +133,7 @@ class SimpleLitAPI(ls.LitAPI):
         output_url = context['output_signed_url']
         process_id = context['process_id']
         response = 200
-
+        final_image = compress_image(final_image)
         gcp_sent_status_code, message = send_image_to_gcp(final_image, output_url)        
         if str(gcp_sent_status_code) != '200':
             response = gcp_sent_status_code

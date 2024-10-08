@@ -1,4 +1,4 @@
-from os.path import basename, join
+from os.path import exists, join
 from os import getenv
 from typing import List
 import requests
@@ -45,27 +45,32 @@ class ModelDownloader:
         local_path = join(self.model_folder_path, f"{file}.pth")
         print(f"src path: {url_path}, dest_path: {local_path}")
 
-        try:
-            # Use stream=True to download the file in chunks
-            with requests.get(url_path, stream=True) as response:
-                response.raise_for_status()
-                total_size = int(response.headers.get('content-length', 0))
-                chunk_size = 1024  # 1 KB
-
-                # Progress bar
-                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {file}", ascii=True) as pbar:
-                    with open(local_path, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=chunk_size):
-                            if chunk:  # Filter out keep-alive chunks
-                                f.write(chunk)
-                                pbar.update(len(chunk))
-
-            print(f"File downloaded successfully at location: {local_path}")
+        if exists(local_path):
+            print(f"File already exists at location: {local_path}")
             return local_path
-        except RequestException as e:
-            raise Exception(f"Failed to download object: {e}")
-        except IOError as e:
-            raise Exception(f"Failed to write to file: {e}")
+
+        else:
+            try:
+                # Use stream=True to download the file in chunks
+                with requests.get(url_path, stream=True) as response:
+                    response.raise_for_status()
+                    total_size = int(response.headers.get('content-length', 0))
+                    chunk_size = 1024  # 1 KB
+
+                    # Progress bar
+                    with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {file}", ascii=True) as pbar:
+                        with open(local_path, 'wb') as f:
+                            for chunk in response.iter_content(chunk_size=chunk_size):
+                                if chunk:  # Filter out keep-alive chunks
+                                    f.write(chunk)
+                                    pbar.update(len(chunk))
+
+                print(f"File downloaded successfully at location: {local_path}")
+                return local_path
+            except RequestException as e:
+                raise Exception(f"Failed to download object: {e}")
+            except IOError as e:
+                raise Exception(f"Failed to write to file: {e}")
 
     def upload_object(self, signed_url: str, file_path: str) -> None:
         """
