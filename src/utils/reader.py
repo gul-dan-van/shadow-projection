@@ -335,7 +335,7 @@ def resize_image(image: np.ndarray) -> Tuple[np.ndarray, Tuple[int, int]]:
 
 def compress_image(final_image: np.ndarray) -> np.ndarray:
     # Check the size of the final image
-    _, final_image_encoded = cv2.imencode(".jpg", final_image)
+    _, final_image_encoded = cv2.imencode(".png", final_image)
     final_image_bytes = final_image_encoded.tobytes()
     final_image_size_mb = len(final_image_bytes) / (1024 * 1024)
 
