@@ -3,6 +3,8 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+from scipy.spatial import distance
+
 from src.composition.shadow_generation.utils.person_segmentation import PersonSegmentationExtractor
 from src.composition.shadow_generation.utils.helper import *
 from src.composition.shadow_generation.utils.pose_estimation  import get_feet_coords
@@ -19,6 +21,7 @@ class SoftShadowGenerator:
         pass
     def transform_masks(self, image, mask, angle, shadow_length, pose_indices=[29, 30, 31, 32]):
         # Ensure the mask is of type uint8
+        height, width = image.shape[:2]
         if mask.dtype != np.uint8:
             mask = mask.astype(np.uint8)
 
@@ -37,12 +40,14 @@ class SoftShadowGenerator:
         foot2_mask = mask.copy()
         foot2_mask[:feet_coords[1][1]] = 0
         feet_mask = np.maximum(foot1_mask, foot2_mask)
+        bottom_l = (0, 0)
+        bottom_r = (width, 0)
 
         person_mask = mask - feet_mask
 
         bin_mask = (mask > 0).astype(np.uint8)
         contours, _ = cv2.findContours(bin_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contour = contours[0]
+        contour = max(contours, key=cv2.contourArea)
         x1 = contour[:, :, 0].min()
         x2 = contour[:, :, 0].max()
         y1 = contour[:, :, 1].min()
@@ -54,47 +59,41 @@ class SoftShadowGenerator:
         translation_magnitude = max(1, (y2 - y1) // 120)
         feet_mask = translate_image(feet_mask, translation_angle, translation_magnitude)
 
+        feet_coords, poses = arrange_feet_coords(angle, feet_coords)
         pose_idx = 0
-        if 0 < angle < 180:
-            poses = [
-                [0,1],
-                [2,1],
-                [0,3],
-                [2,3]
-            ]
-        else:
-            poses = [
-                [0,1],
-                [2,3],
-                [0,3],
-                [2,1],
-            ]
         flag = True
         while flag:
-            tf_top_mid = top_mid
+            transformation_list = []
             if 90 < angle % 360 < 270:
                 M_flip = flip_mask_vertically(bottom_mid)
-                tf_top_mid = apply_transformation_to_point(top_mid, M_flip)
+                transformation_list.append(M_flip)
 
             M_scale = scale_mask_lengthwise(shadow_length, bottom_mid)
-            tf_top_mid = apply_transformation_to_point(tf_top_mid, M_scale)
+            transformation_list.append(M_scale)
 
             M_rotate = rotate_mask(angle, bottom_mid)
-            tf_top_mid = apply_transformation_to_point(tf_top_mid, M_rotate)
+            transformation_list.append(M_rotate)
+
+            tf_top_mid = cascading_transformations(top_mid, transformation_list)
 
             src = np.array([top_mid, feet_coords[poses[pose_idx][0]], feet_coords[poses[pose_idx][1]]], dtype=np.float32)
             dst = np.array([tf_top_mid, feet_coords[poses[pose_idx][0]], feet_coords[poses[pose_idx][1]]], dtype=np.float32)
 
             triangle_skewness = calculate_angle(*dst.tolist())
-            if (triangle_skewness < 20 or triangle_skewness > 160) and pose_idx<3:
+            H = cv2.getAffineTransform(src, dst)
+            tf_bottom_l = apply_transformation_to_point(bottom_l, H)
+            tf_bottom_r = apply_transformation_to_point(bottom_r, H)
+            d1 = distance.euclidean(bottom_l, bottom_r)
+            d2 = distance.euclidean(tf_bottom_l, tf_bottom_r)
+
+            if (triangle_skewness < 20 or triangle_skewness > 160 or d1/d2<0.8) and pose_idx<len(poses)-1:
                 pose_idx += 1
-            elif pose_idx>=3:
+            elif pose_idx>=len(poses)-1:
                 pose_idx = 0
-                angle += 5
+                angle += 10
             else:
                 flag = False
         H = cv2.getAffineTransform(src, dst)
-        height, width = image.shape[:2]
         tf_mask = cv2.warpAffine(person_mask, H, (width, height))
         # cv2.imwrite("feet_mask.jpg", feet_mask)
         # cv2.imwrite("tf_mask.jpg", tf_mask)
@@ -115,7 +114,7 @@ class SoftShadowGenerator:
 
         return total_shadow_mask, total_feet_mask
 
-    def generate_3d_shadow(self, image, masks, angle, blur_size=(55, 55), shadow_length=0.65, pose_indices=[29, 30, 31, 32], save_gradient_path=None, angle_offset=5):
+    def generate_3d_shadow(self, image, masks, angle, blur_size=(85, 85), shadow_length=0.55, pose_indices=[29, 30, 31, 32], save_gradient_path=None, angle_offset=5):
         combined_mask = np.any([mask > 0 for mask in masks], axis=0)
         combined_mask_3 = np.stack([combined_mask] * 3, axis=-1)
 

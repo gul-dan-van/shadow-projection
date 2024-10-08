@@ -9,9 +9,12 @@ mp_pose = mp.solutions.pose
 POSE = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.5)
 
 def get_feet_coords(image, pose=POSE, pose_indices=[29, 30, 31, 32]):
+    height, width, _ = image.shape
     rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = pose.process(rgb)
-    height, width, _ = image.shape
+
+    if not results.pose_landmarks:
+        results = pose.process(image)
 
     if not results.pose_landmarks:
         # Instead of raising an exception, return None
