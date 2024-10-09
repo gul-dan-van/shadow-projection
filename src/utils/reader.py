@@ -344,7 +344,7 @@ def compress_image(final_image: np.ndarray) -> np.ndarray:
         pil_image = Image.fromarray(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
         buffer = BytesIO()
         quality = 85  # Initial quality
-        while final_image_size_mb > 5 and quality > 10:
+        while final_image_size_mb > 4.8 and quality > 10:
             buffer.seek(0)
             pil_image.save(buffer, format="JPEG", quality=quality)
             buffer.seek(0)

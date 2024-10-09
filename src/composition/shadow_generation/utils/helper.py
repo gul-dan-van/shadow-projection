@@ -5,6 +5,31 @@ import numpy as np
 
 from typing import List, Tuple
 
+def arrange_feet_coords(angle, feet_coords, padding=0):
+    new_feet_coords = feet_coords.copy()
+
+    if (0 < angle <= 90) or (180 < angle <= 360):
+        poses = [
+            [0,1],
+            [2,1],
+            [0,3],
+            [2,3],
+        ]
+    else:
+        poses = [
+            [0,1],
+            [0,3],
+            [2,1],
+            [2,3],
+        ]
+
+    new_feet_coords[[0, 2], 0] = new_feet_coords[[0, 2], 0] - padding
+    new_feet_coords[[0, 1], 1] = new_feet_coords[[0, 1], 1] - padding
+    new_feet_coords[[1, 3], 0] = new_feet_coords[[1, 3], 0] + padding
+    new_feet_coords[[2, 3], 1] = new_feet_coords[[2, 3], 1] + padding
+
+    return new_feet_coords, poses
+
 def calculate_angle(p1, p2, p3):
     v1 = np.array(p1) - np.array(p2)
     v2 = np.array(p3) - np.array(p2)
@@ -248,15 +273,9 @@ def determine_shadow_direction(fg_mask: np.ndarray, blended_image: np.ndarray) -
 
     return angle  # Return angle directly
 
-def calculate_angle(p1, p2, p3):
-    v1 = np.array(p1) - np.array(p2)
-    v2 = np.array(p3) - np.array(p2)
-    dot_product = np.dot(v1, v2)
-    magnitudes = np.linalg.norm(v1) * np.linalg.norm(v2)
-    if magnitudes == 0:
-        return 0
-    cos_angle = dot_product / magnitudes
-    cos_angle = np.clip(cos_angle, -1.0, 1.0)
-    angle_rad = np.arccos(cos_angle)
-    angle_deg = np.degrees(angle_rad)
-    return angle_deg % 180
+def cascading_transformations(point, transformation_list):
+    for M in transformation_list:
+        tf_point = apply_transformation_to_point(point, M)
+        point = tf_point
+
+    return tf_point
