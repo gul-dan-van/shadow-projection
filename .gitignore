@@ -1,0 +1,6 @@
+# folders
+recon
+\.DS_Store
+
+# images
+*.png
