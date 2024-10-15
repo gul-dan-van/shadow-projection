@@ -5,10 +5,8 @@ import numpy as np
 
 from scipy.spatial import distance
 
-from src.composition.shadow_generation.utils.person_segmentation import PersonSegmentationExtractor
-from src.composition.shadow_generation.utils.helper import *
-from src.composition.shadow_generation.utils.pose_estimation  import get_feet_coords
-from src.composition.image_processing.smoothening import BorderSmoothing
+from cocreation.src.composition.shadow_generation.utils.helper import *
+from cocreation.src.composition.shadow_generation.utils.pose_estimation  import get_feet_coords
 
 
 class SoftShadowGenerator:
